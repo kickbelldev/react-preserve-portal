@@ -16,6 +16,12 @@ function RootComponent() {
             Home
           </Link>
           <Link
+            to="/about"
+            className="hover:text-blue-400 [&.active]:text-blue-400"
+          >
+            About
+          </Link>
+          <Link
             to="/video/$id"
             params={{ id: '1' }}
             className="hover:text-blue-400 [&.active]:text-blue-400"
