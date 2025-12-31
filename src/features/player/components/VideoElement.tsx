@@ -1,16 +1,13 @@
-import { usePortalStore } from '@/features/portal'
-
 import { usePlayerStore } from '../model/store'
 
 /**
  * 전역 VideoElement - root에서 한 번만 렌더링
- * portal의 detached element에 video를 createPortal로 렌더링
+ * PortalHost의 children으로 사용되어 container에 렌더링됨
  */
 export function VideoElement() {
-  const container = usePortalStore((s) => s.container)
   const src = usePlayerStore((s) => s.src)
 
-  if (!container || !src) return null
+  if (!src) return null
 
   return (
     <video
