@@ -14,7 +14,6 @@ export function VideoElement() {
       ref={(ref) => setVideoRef(ref)}
       src={src ?? undefined}
       playsInline
-      controls
       className="aspect-video w-full object-contain"
       onTimeUpdate={(e) => {
         const video = e.currentTarget

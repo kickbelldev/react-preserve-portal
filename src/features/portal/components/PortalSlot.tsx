@@ -1,23 +1,27 @@
 import { useLayoutEffect, useRef } from 'react'
 
-import { usePortalStore } from '../model/store'
+import { usePortal } from '../hooks/usePortal'
+import { DEFAULT_PORTAL_ID } from '../model/store'
 
 interface PortalSlotProps {
-  mode: 'main' | 'mini'
+  portalId?: string
+  mode: string
 }
 
-export function PortalSlot({ mode }: PortalSlotProps) {
+export function PortalSlot({
+  portalId = DEFAULT_PORTAL_ID,
+  mode,
+}: PortalSlotProps) {
   const slotRef = useRef<HTMLDivElement>(null)
-  const register = usePortalStore((s) => s.register)
-  const unregister = usePortalStore((s) => s.unregister)
+  const { registerTarget, unregisterTarget } = usePortal(portalId)
 
   useLayoutEffect(() => {
     if (slotRef.current) {
-      register(mode, slotRef.current)
+      registerTarget(mode, slotRef.current)
     }
 
-    return () => unregister(mode)
-  }, [mode, register, unregister])
+    return () => unregisterTarget(mode)
+  }, [mode, registerTarget, unregisterTarget])
 
   return <div ref={slotRef} className="contents" />
 }

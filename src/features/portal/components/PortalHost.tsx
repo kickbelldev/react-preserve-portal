@@ -1,18 +1,22 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
-import { usePortalStore } from '../model/store'
+import { usePortal } from '../hooks/usePortal'
+import { DEFAULT_PORTAL_ID } from '../model/store'
 
 interface PortalHostProps {
+  portalId?: string
   children: ReactNode
 }
 
-export function PortalHost({ children }: PortalHostProps) {
+export function PortalHost({
+  portalId = DEFAULT_PORTAL_ID,
+  children,
+}: PortalHostProps) {
   const unmanagedNodeRef = useRef<HTMLDivElement>(document.createElement('div'))
 
-  const targets = usePortalStore((s) => s.targets)
-  const mode = usePortalStore((s) => s.mode)
-  const target = targets.get(mode)
+  const { mode, targets } = usePortal(portalId)
+  const target = targets.get(mode ?? '')
 
   useEffect(() => {
     const unmanagedNode = unmanagedNodeRef.current
@@ -27,6 +31,7 @@ export function PortalHost({ children }: PortalHostProps) {
       }
     }
   }, [target])
-  // eslint-disable-next-line react-hooks/refs
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   return <>{createPortal(children, unmanagedNodeRef.current)}</>
 }

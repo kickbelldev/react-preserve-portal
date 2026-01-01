@@ -1,16 +1,20 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
-import { usePortalStore } from '../model/store'
+import { usePortal } from '../hooks/usePortal'
+import { DEFAULT_PORTAL_ID } from '../model/store'
 
 interface MiniPortalContainerProps {
+  portalId?: string
   children: ReactNode
 }
 
-export function MiniPortalContainer({ children }: MiniPortalContainerProps) {
-  const isActive = usePortalStore((s) => s.mode === 'mini')
-  const returnPath = usePortalStore((s) => s.returnPath)
-  const reset = usePortalStore((s) => s.reset)
+export function MiniPortalContainer({
+  portalId = DEFAULT_PORTAL_ID,
+  children,
+}: MiniPortalContainerProps) {
+  const { mode, returnPath, reset } = usePortal(portalId)
+  const isActive = mode === 'mini'
 
   if (!isActive) return null
 

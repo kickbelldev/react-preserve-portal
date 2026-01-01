@@ -1,48 +1,95 @@
 import { create } from 'zustand'
 
-type PortalMode = 'main' | 'mini' | null
-type ReturnPath = string | null
+const DEFAULT_PORTAL_ID = 'default'
+
+interface PortalInstance {
+  targets: Map<string, HTMLElement>
+  mode: string | null
+  returnPath: string | null
+}
 
 interface PortalState {
-  targets: Map<PortalMode, HTMLElement>
-  mode: PortalMode
-  returnPath: ReturnPath
+  portals: Map<string, PortalInstance>
 }
 
 interface PortalActions {
-  register: (mode: PortalMode, target: HTMLElement) => void
-  unregister: (mode: PortalMode) => void
-  setMode: (mode: PortalMode) => void
-  setReturnPath: (path: ReturnPath) => void
-  reset: () => void
+  getOrCreatePortal: (portalId: string) => PortalInstance
+  register: (portalId: string, mode: string, target: HTMLElement) => void
+  unregister: (portalId: string, mode: string) => void
+  setMode: (portalId: string, mode: string | null) => void
+  setReturnPath: (portalId: string, path: string | null) => void
+  resetPortal: (portalId: string) => void
 }
 
-const initialState: PortalState = {
+const createEmptyInstance = (): PortalInstance => ({
   targets: new Map(),
   mode: null,
   returnPath: null,
-}
+})
 
 export const usePortalStore = create<PortalState & PortalActions>(
-  (set) =>
-    ({
-      ...initialState,
+  (set, get) => ({
+    portals: new Map(),
 
-      register: (mode, target) =>
-        set((state) => {
-          const targets = new Map(state.targets)
-          targets.set(mode, target)
-          return { targets }
-        }),
-      unregister: (mode) =>
-        set((state) => {
-          const targets = new Map(state.targets)
-          targets.delete(mode)
-          return { targets }
-        }),
-      setMode: (mode) => set({ mode }),
-      setReturnPath: (path) => set({ returnPath: path }),
+    getOrCreatePortal: (portalId) => {
+      const existing = get().portals.get(portalId)
+      if (existing) return existing
 
-      reset: () => set(initialState),
-    }) satisfies PortalState & PortalActions,
+      const newInstance = createEmptyInstance()
+      set((state) => {
+        const portals = new Map(state.portals)
+        portals.set(portalId, newInstance)
+        return { portals }
+      })
+      return newInstance
+    },
+
+    register: (portalId, mode, target) =>
+      set((state) => {
+        const portals = new Map(state.portals)
+        const instance = portals.get(portalId) ?? createEmptyInstance()
+        const targets = new Map(instance.targets)
+        targets.set(mode, target)
+        portals.set(portalId, { ...instance, targets })
+        return { portals }
+      }),
+
+    unregister: (portalId, mode) =>
+      set((state) => {
+        const portals = new Map(state.portals)
+        const instance = portals.get(portalId)
+        if (!instance) return state
+
+        const targets = new Map(instance.targets)
+        targets.delete(mode)
+        portals.set(portalId, { ...instance, targets })
+        return { portals }
+      }),
+
+    setMode: (portalId, mode) =>
+      set((state) => {
+        const portals = new Map(state.portals)
+        const instance = portals.get(portalId) ?? createEmptyInstance()
+        portals.set(portalId, { ...instance, mode })
+        return { portals }
+      }),
+
+    setReturnPath: (portalId, path) =>
+      set((state) => {
+        const portals = new Map(state.portals)
+        const instance = portals.get(portalId) ?? createEmptyInstance()
+        portals.set(portalId, { ...instance, returnPath: path })
+        return { portals }
+      }),
+
+    resetPortal: (portalId) =>
+      set((state) => {
+        const portals = new Map(state.portals)
+        portals.set(portalId, createEmptyInstance())
+        return { portals }
+      }),
+  }),
 )
+
+export { DEFAULT_PORTAL_ID }
+export type { PortalInstance }

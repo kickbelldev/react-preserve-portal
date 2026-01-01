@@ -1,16 +1,20 @@
 import { useEffect } from 'react'
 
-import { usePortalStore } from '../model/store'
+import { usePortal } from '../hooks/usePortal'
+import { DEFAULT_PORTAL_ID } from '../model/store'
 
 import { PortalSlot } from './PortalSlot'
 
 interface MainPortalProps {
+  portalId?: string
   pathname: string
 }
 
-export function MainPortal({ pathname }: MainPortalProps) {
-  const setReturnPath = usePortalStore((s) => s.setReturnPath)
-  const setMode = usePortalStore((s) => s.setMode)
+export function MainPortal({
+  portalId = DEFAULT_PORTAL_ID,
+  pathname,
+}: MainPortalProps) {
+  const { setReturnPath, setMode } = usePortal(portalId)
 
   useEffect(() => {
     setReturnPath(pathname)
@@ -19,5 +23,5 @@ export function MainPortal({ pathname }: MainPortalProps) {
     return () => setMode('mini')
   }, [pathname, setMode, setReturnPath])
 
-  return <PortalSlot mode="main" />
+  return <PortalSlot portalId={portalId} mode="main" />
 }
