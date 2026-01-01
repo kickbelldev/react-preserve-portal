@@ -106,6 +106,45 @@ createPortal(<video />, slotKey === 'main' ? mainRef : miniRef)
 2. **State Preservation**: Playback position, buffer, network connections maintained
 3. **Independent of React**: Only uses appendChild/removeChild to change location
 
+## Use Cases
+
+This library is useful for any DOM element where recreation is expensive or causes state loss:
+
+### Video / Audio Players
+- Playback position and buffer preserved
+- Network connections maintained
+- No re-loading or buffering when moving between slots
+
+### Canvas / WebGL
+- 3D scenes (Three.js, Babylon.js) don't need re-initialization
+- Game state preserved
+- WebGL context maintained (context loss is expensive)
+
+### Maps
+- Google Maps, Mapbox, Kakao Map instances preserved
+- Map position, zoom level, markers maintained
+- Avoids re-fetching map tiles
+
+### iframe
+- Embedded content state preserved
+- No page reload when moving
+- Login sessions in embedded widgets maintained
+
+### Rich Text Editors
+- Editor state (undo history, cursor position) preserved
+- Plugin initialization maintained
+- CKEditor, Quill, TipTap, etc.
+
+### Charts / Data Visualizations
+- D3, Chart.js, ECharts instances preserved
+- Animation states maintained
+- Avoids expensive re-rendering of large datasets
+
+### Third-party Widgets
+- Chat widgets, payment forms
+- SDK initialization preserved
+- User input state maintained
+
 ## API
 
 ### `createPortal(options)`
