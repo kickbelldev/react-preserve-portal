@@ -1,9 +1,9 @@
-import { useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect, useRef, type HTMLAttributes } from 'react'
 
-import { usePortal } from '../hooks/usePortal'
-import { DEFAULT_PORTAL_ID } from '../model/store'
+import { DEFAULT_PORTAL_ID } from './store'
+import { usePortal } from './usePortal'
 
-interface PortalSlotProps {
+interface PortalSlotProps extends HTMLAttributes<HTMLDivElement> {
   portalId?: string
   mode: string
 }
@@ -11,6 +11,7 @@ interface PortalSlotProps {
 export function PortalSlot({
   portalId = DEFAULT_PORTAL_ID,
   mode,
+  ...props
 }: PortalSlotProps) {
   const slotRef = useRef<HTMLDivElement>(null)
   const { registerTarget, unregisterTarget } = usePortal(portalId)
@@ -23,5 +24,5 @@ export function PortalSlot({
     return () => unregisterTarget(mode)
   }, [mode, registerTarget, unregisterTarget])
 
-  return <div ref={slotRef} className="contents" />
+  return <div ref={slotRef} {...props} />
 }

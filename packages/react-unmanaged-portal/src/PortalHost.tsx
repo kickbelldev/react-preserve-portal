@@ -1,8 +1,8 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
-import { usePortal } from '../hooks/usePortal'
-import { DEFAULT_PORTAL_ID } from '../model/store'
+import { DEFAULT_PORTAL_ID } from './store'
+import { usePortal } from './usePortal'
 
 interface PortalHostProps {
   portalId?: string
@@ -32,6 +32,5 @@ export function PortalHost({
     }
   }, [target])
 
-  // eslint-disable-next-line react-hooks/refs
   return <>{createPortal(children, unmanagedNodeRef.current)}</>
 }

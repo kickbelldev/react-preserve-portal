@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
-import { usePortal } from '../hooks/usePortal'
-import { DEFAULT_PORTAL_ID } from '../model/store'
+import { DEFAULT_PORTAL_ID, usePortal } from '@kayce/react-unmanaged-portal'
 
 interface MiniPortalContainerProps {
   portalId?: string

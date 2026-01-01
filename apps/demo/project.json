@@ -1,0 +1,26 @@
+{
+  "name": "demo",
+  "sourceRoot": "apps/demo/src",
+  "projectType": "application",
+  "targets": {
+    "dev": {
+      "executor": "@nx/vite:dev-server",
+      "options": {
+        "buildTarget": "demo:build"
+      }
+    },
+    "build": {
+      "executor": "@nx/vite:build",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/demo"
+      }
+    },
+    "preview": {
+      "executor": "@nx/vite:preview-server",
+      "options": {
+        "buildTarget": "demo:build"
+      }
+    }
+  }
+}
