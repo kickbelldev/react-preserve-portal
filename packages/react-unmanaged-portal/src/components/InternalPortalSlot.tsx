@@ -8,7 +8,7 @@ import {
 import { DEFAULT_PORTAL_ID } from '../model/store'
 import { usePortal } from '../model/usePortal'
 
-interface PortalSlotProps<
+interface InternalPortalSlotProps<
   T extends keyof HTMLElementTagNameMap = 'div',
 > extends HTMLAttributes<HTMLElementTagNameMap[T]> {
   portalId?: string
@@ -16,12 +16,14 @@ interface PortalSlotProps<
   as?: T
 }
 
-export function PortalSlot<T extends keyof HTMLElementTagNameMap = 'div'>({
+export function InternalPortalSlot<
+  T extends keyof HTMLElementTagNameMap = 'div',
+>({
   portalId = DEFAULT_PORTAL_ID,
   slotKey,
   as: container = 'div' as T,
   ...props
-}: PortalSlotProps<T>) {
+}: InternalPortalSlotProps<T>) {
   const slotRef = useRef<HTMLElementTagNameMap[T]>(null)
   const { registerTarget, unregisterTarget } = usePortal(portalId)
 

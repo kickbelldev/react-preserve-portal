@@ -1,20 +1,14 @@
-import {
-  DEFAULT_PORTAL_ID,
-  usePortal,
-} from '@charley-kim/react-unmanaged-portal'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
+import { VideoPortal } from '@/portals/VideoPortal'
+
 interface MiniPortalContainerProps {
-  portalId?: string
   children: ReactNode
 }
 
-export function MiniPortalContainer({
-  portalId = DEFAULT_PORTAL_ID,
-  children,
-}: MiniPortalContainerProps) {
-  const { slotKey, returnPath, reset } = usePortal(portalId)
+export function MiniPortalContainer({ children }: MiniPortalContainerProps) {
+  const { slotKey, returnPath, reset } = VideoPortal.usePortal()
   const isActive = slotKey === 'mini'
 
   if (!isActive) return null

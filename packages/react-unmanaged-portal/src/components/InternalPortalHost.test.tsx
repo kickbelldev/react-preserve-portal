@@ -1,9 +1,9 @@
 import { render, screen, waitFor, act } from '@testing-library/react'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { resetPortal, setSlotKey, register } from '../model/store'
-import { PortalHost } from './PortalHost'
+import { InternalPortalHost } from './InternalPortalHost'
 
-describe('PortalHost', () => {
+describe('InternalPortalHost', () => {
   beforeEach(() => {
     resetPortal('test-portal')
     resetPortal('default')
@@ -16,11 +16,7 @@ describe('PortalHost', () => {
     register('default', 'main', target)
     setSlotKey('default', 'main')
 
-    render(
-      <PortalHost>
-        <div>Test Content</div>
-      </PortalHost>,
-    )
+    render(<InternalPortalHost node={<div>Test Content</div>} />)
 
     expect(screen.getByText('Test Content')).toBeInTheDocument()
     expect(
@@ -38,9 +34,10 @@ describe('PortalHost', () => {
     setSlotKey('custom-portal', 'main')
 
     render(
-      <PortalHost portalId="custom-portal">
-        <div>Custom Portal Content</div>
-      </PortalHost>,
+      <InternalPortalHost
+        portalId="custom-portal"
+        node={<div>Custom Portal Content</div>}
+      />,
     )
 
     expect(screen.getByText('Custom Portal Content')).toBeInTheDocument()
@@ -56,9 +53,7 @@ describe('PortalHost', () => {
     setSlotKey('default', 'main')
 
     render(
-      <PortalHost as="section">
-        <div>Section Content</div>
-      </PortalHost>,
+      <InternalPortalHost as="section" node={<div>Section Content</div>} />,
     )
 
     const content = screen.getByText('Section Content')
@@ -76,11 +71,7 @@ describe('PortalHost', () => {
     register('default', 'main', target)
     // setSlotKey를 호출하지 않음
 
-    render(
-      <PortalHost>
-        <div>Should Not Render</div>
-      </PortalHost>,
-    )
+    render(<InternalPortalHost node={<div>Should Not Render</div>} />)
 
     // 포털이 타겟에 연결되지 않았으므로 body에 직접 렌더링되지 않음
     expect(screen.queryByText('Should Not Render')).not.toBeInTheDocument()
@@ -100,11 +91,7 @@ describe('PortalHost', () => {
     register('default', 'slotKey2', target2)
     setSlotKey('default', 'slotKey1')
 
-    render(
-      <PortalHost>
-        <div>Moving Content</div>
-      </PortalHost>,
-    )
+    render(<InternalPortalHost node={<div>Moving Content</div>} />)
 
     await waitFor(() => {
       expect(
@@ -134,9 +121,7 @@ describe('PortalHost', () => {
     setSlotKey('default', 'main')
 
     const { unmount } = render(
-      <PortalHost>
-        <div>Will Be Removed</div>
-      </PortalHost>,
+      <InternalPortalHost node={<div>Will Be Removed</div>} />,
     )
 
     expect(target.children.length).toBeGreaterThan(0)
@@ -148,7 +133,7 @@ describe('PortalHost', () => {
     document.body.removeChild(target)
   })
 
-  it('여러 PortalHost가 같은 포털을 사용할 수 있음', () => {
+  it('여러 InternalPortalHost가 같은 포털을 사용할 수 있음', () => {
     const target = document.createElement('div')
     document.body.appendChild(target)
 
@@ -157,12 +142,8 @@ describe('PortalHost', () => {
 
     render(
       <>
-        <PortalHost>
-          <div>Content 1</div>
-        </PortalHost>
-        <PortalHost>
-          <div>Content 2</div>
-        </PortalHost>
+        <InternalPortalHost node={<div>Content 1</div>} />
+        <InternalPortalHost node={<div>Content 2</div>} />
       </>,
     )
 

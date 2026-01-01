@@ -1,20 +1,13 @@
-import {
-  Portal,
-  DEFAULT_PORTAL_ID,
-  usePortal,
-} from '@charley-kim/react-unmanaged-portal'
 import { useEffect } from 'react'
 
+import { VideoPortal } from '@/portals/VideoPortal'
+
 interface MainPortalProps {
-  portalId?: string
   pathname: string
 }
 
-export function MainPortal({
-  portalId = DEFAULT_PORTAL_ID,
-  pathname,
-}: MainPortalProps) {
-  const { setReturnPath, setSlotKey } = usePortal(portalId)
+export function MainPortal({ pathname }: MainPortalProps) {
+  const { setReturnPath, setSlotKey } = VideoPortal.usePortal()
 
   useEffect(() => {
     setReturnPath(pathname)
@@ -23,5 +16,5 @@ export function MainPortal({
     return () => setSlotKey('mini')
   }, [pathname, setSlotKey, setReturnPath])
 
-  return <Portal.Slot slotKey="main" className="contents" />
+  return <VideoPortal.Slot slotKey="main" className="contents" />
 }

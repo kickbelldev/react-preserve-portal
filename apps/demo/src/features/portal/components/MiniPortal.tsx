@@ -1,5 +1,5 @@
-import { Portal } from '@charley-kim/react-unmanaged-portal'
+import { VideoPortal } from '@/portals/VideoPortal'
 
 export function MiniPortal() {
-  return <Portal.Slot slotKey="mini" className="contents" />
+  return <VideoPortal.Slot slotKey="mini" className="contents" />
 }

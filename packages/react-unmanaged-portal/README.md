@@ -19,29 +19,34 @@ yarn add @charley-kim/react-unmanaged-portal
 ## Quick Start
 
 ```tsx
-import { Portal, usePortal } from '@charley-kim/react-unmanaged-portal'
+import { createPortal } from '@charley-kim/react-unmanaged-portal'
 
+// 1. Create a typed portal
+const VideoPortal = createPortal({
+  id: 'video',
+  slots: ['main', 'mini', 'pip'],
+} as const)
+
+// 2. Use components and hooks
 function App() {
   return (
     <>
       {/* Portal content */}
-      <Portal.Host>
-        <video src="..." />
-      </Portal.Host>
+      <VideoPortal.Host node={<video src="..." />} />
 
       {/* Portal slots */}
       <div className="main-area">
-        <Portal.Slot slotKey="main" />
+        <VideoPortal.Slot slotKey="main" />
       </div>
       <div className="mini-area">
-        <Portal.Slot slotKey="mini" />
+        <VideoPortal.Slot slotKey="mini" />
       </div>
     </>
   )
 }
 
 function Controls() {
-  const { slotKey, setSlotKey } = usePortal()
+  const { slotKey, setSlotKey } = VideoPortal.usePortal()
 
   return (
     <button onClick={() => setSlotKey(slotKey === 'main' ? 'mini' : 'main')}>
@@ -51,6 +56,27 @@ function Controls() {
 }
 ```
 
+## Type Safety
+
+The library provides full type safety for slot keys:
+
+```tsx
+const VideoPortal = createPortal({
+  id: 'video',
+  slots: ['main', 'mini', 'pip'],
+} as const)
+
+// Type-safe slot keys
+<VideoPortal.Slot slotKey="main" />     // OK
+<VideoPortal.Slot slotKey="mini" />     // OK
+<VideoPortal.Slot slotKey="wrong" />    // TypeScript Error!
+
+// Type-safe setSlotKey
+const { setSlotKey } = VideoPortal.usePortal()
+setSlotKey('main')   // OK
+setSlotKey('wrong')  // TypeScript Error!
+```
+
 ## Core Concept: Unmanaged DOM Node
 
 React's `createPortal` alone cannot preserve DOM instances. When the portal target changes, React unmounts the existing DOM and creates a new one.
@@ -58,45 +84,11 @@ React's `createPortal` alone cannot preserve DOM instances. When the portal targ
 This library solves this problem by placing an **Unmanaged DOM node** (not managed by React) in between:
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                              React                                      │
-│                                                                         │
-│   PortalHost                                                            │
-│   ┌─────────────────────────────────────────────────────────────────┐   │
-│   │  unmanagedNodeRef = useRef(document.createElement('div'))       │   │
-│   │                           │                                     │   │
-│   │              createPortal(children, unmanagedNode)              │   │
-│   │                           │                                     │   │
-│   │                           ▼                                     │   │
-│   │  ┌─────────────────────────────────────────────┐                │   │
-│   │  │           Unmanaged DOM Node (div)          │ ◄── Outside    │   │
-│   │  │  ┌───────────────────────────────────────┐  │     of React   │   │
-│   │  │  │           <video> Element             │  │                │   │
-│   │  │  │         (Keep video instance)         │  │                │   │
-│   │  │  └───────────────────────────────────────┘  │                │   │
-│   │  └─────────────────────────────────────────────┘                │   │
-│   │                           │                                     │   │
-│   │                      appendChild                                │   │
-│   │                           │                                     │   │
-│   │              ┌────────────┴──────────────┐                      │   │
-│   │              ▼                           ▼                      │   │
-│   │     PortalSlot (main)           PortalSlot (mini)               │   │
-│   │       ┌─────────────┐            ┌─────────────┐                │   │
-│   │       │ <div ref /> │            │ <div ref /> │                │   │
-│   │       └─────────────┘            └─────────────┘                │   │
-│   │              ▲                           ▲                      │   │
-│   │              │                           │                      │   │
-│   │          register()                  register()                 │   │
-│   │              │                           │                      │   │
-│   │              └────────────┬──────────────┘                      │   │
-│   │                           ▼                                     │   │
-│   │                    ┌───────────────┐                            │   │
-│   │                    │ externalStore │                            │   │
-│   │                    │ targets Map   │                            │   │
-│   │                    │ slotKey state    │                            │   │
-│   │                    └───────────────┘                            │   │
-│   └─────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────┘
+React -> createPortal -> Unmanaged Node (div) -> Slot targets
+                              |
+                    Outside React control
+                              |
+              Only uses appendChild/removeChild
 ```
 
 ### Why This Approach?
@@ -111,93 +103,97 @@ createPortal(<video />, slotKey === 'main' ? mainRef : miniRef)
 #### Benefits of Unmanaged DOM
 
 1. **Complete DOM Instance Preservation**: The video element never gets unmounted
-2. **State Preservation**: Playback position, buffer, network connections, and all other state are maintained
+2. **State Preservation**: Playback position, buffer, network connections maintained
 3. **Independent of React**: Only uses appendChild/removeChild to change location
 
 ## API
 
-### Components
+### `createPortal(options)`
 
-#### `Portal.Host`
+Creates a typed portal instance.
 
-A component that renders portal content. It creates an Unmanaged DOM node and renders children via `createPortal`.
+**Options:**
 
-**Props:**
-
-| Prop       | Type                          | Default     | Description            |
-| ---------- | ----------------------------- | ----------- | ---------------------- |
-| `portalId` | `string`                      | `'default'` | Portal instance ID     |
-| `children` | `ReactNode`                   | -           | Content to render      |
-| `as`       | `keyof HTMLElementTagNameMap` | `'div'`     | Container element type |
-
-**Example:**
-
-```tsx
-<Portal.Host>
-  <video src="video.mp4" />
-</Portal.Host>
-
-<Portal.Host portalId="custom" as="section">
-  <CustomComponent />
-</Portal.Host>
-```
-
-#### `Portal.Slot`
-
-A component that specifies where portal content should be rendered. It registers/unregisters its own DOM ref in the store.
-
-**Props:**
-
-| Prop       | Type                          | Default     | Description                      |
-| ---------- | ----------------------------- | ----------- | -------------------------------- |
-| `portalId` | `string`                      | `'default'` | Portal instance ID               |
-| `slotKey`  | `string`                      | -           | **Required** Target slotKey name |
-| `as`       | `keyof HTMLElementTagNameMap` | `'div'`     | Container element type           |
-| `...props` | `HTMLAttributes`              | -           | HTML element attributes          |
-
-**Example:**
-
-```tsx
-<Portal.Slot slotKey="main" />
-<Portal.Slot slotKey="mini" className="mini-player" />
-<Portal.Slot slotKey="pip" as="section" id="pip-container" />
-```
-
-### Hooks
-
-#### `usePortal(portalId?)`
-
-A hook that returns portal state and actions.
-
-**Parameters:**
-
-| Parameter  | Type     | Default     | Description        |
-| ---------- | -------- | ----------- | ------------------ |
-| `portalId` | `string` | `'default'` | Portal instance ID |
+| Option  | Type                     | Description                     |
+| ------- | ------------------------ | ------------------------------- |
+| `id`    | `string`                 | Unique portal identifier        |
+| `slots` | `readonly string[]`      | Array of valid slot keys        |
 
 **Returns:**
 
-| Property           | Type                                             | Description                                            |
-| ------------------ | ------------------------------------------------ | ------------------------------------------------------ |
-| `slotKey`          | `string \| null`                                 | Currently active slotKey                               |
-| `returnPath`       | `string \| null`                                 | Portal return path                                     |
-| `targets`          | `Map<string, HTMLElement>`                       | Map of all registered target slotKeys and DOM elements |
-| `setSlotKey`       | `(slotKey: string \| null) => void`              | Set slotKey                                            |
-| `setReturnPath`    | `(path: string \| null) => void`                 | Set return path                                        |
-| `reset`            | `() => void`                                     | Reset portal state                                     |
-| `registerTarget`   | `(slotKey: string, target: HTMLElement) => void` | Manually register target (usually not needed)          |
-| `unregisterTarget` | `(slotKey: string) => void`                      | Manually unregister target (usually not needed)        |
+| Property    | Type                                        | Description              |
+| ----------- | ------------------------------------------- | ------------------------ |
+| `id`        | `string`                                    | Portal ID                |
+| `slots`     | `readonly string[]`                         | Valid slot keys          |
+| `Host`      | `(props: HostProps) => ReactNode`           | Host component           |
+| `Slot`      | `(props: SlotProps) => ReactNode`           | Slot component           |
+| `usePortal` | `() => UsePortalReturn`                     | Portal hook              |
+
+### Host Component
+
+Renders portal content using an Unmanaged DOM node.
+
+**Props:**
+
+| Prop   | Type                          | Default | Description            |
+| ------ | ----------------------------- | ------- | ---------------------- |
+| `node` | `ReactNode`                   | -       | **Required** Content   |
+| `as`   | `keyof HTMLElementTagNameMap` | `'div'` | Container element type |
+
+**Example:**
+
+```tsx
+<VideoPortal.Host node={<video src="video.mp4" />} />
+<VideoPortal.Host as="section" node={<CustomComponent />} />
+```
+
+### Slot Component
+
+Specifies where portal content should be rendered.
+
+**Props:**
+
+| Prop       | Type                          | Default | Description                        |
+| ---------- | ----------------------------- | ------- | ---------------------------------- |
+| `slotKey`  | `TSlot`                       | -       | **Required** Target slot (typed)   |
+| `as`       | `keyof HTMLElementTagNameMap` | `'div'` | Container element type             |
+| `...props` | `HTMLAttributes`              | -       | HTML element attributes            |
+
+**Example:**
+
+```tsx
+<VideoPortal.Slot slotKey="main" />
+<VideoPortal.Slot slotKey="mini" className="mini-player" />
+<VideoPortal.Slot slotKey="pip" as="section" id="pip-container" />
+```
+
+### usePortal Hook
+
+Returns portal state and actions with typed slot keys.
+
+**Returns:**
+
+| Property           | Type                                         | Description                     |
+| ------------------ | -------------------------------------------- | ------------------------------- |
+| `slotKey`          | `TSlot \| null`                              | Currently active slot (typed)   |
+| `returnPath`       | `string \| null`                             | Portal return path              |
+| `targets`          | `Map<TSlot, HTMLElement>`                    | Registered targets              |
+| `setSlotKey`       | `(key: TSlot \| null) => void`               | Set active slot (typed)         |
+| `setReturnPath`    | `(path: string \| null) => void`             | Set return path                 |
+| `reset`            | `() => void`                                 | Reset portal state              |
+| `registerTarget`   | `(slotKey: TSlot, target: HTMLElement) => void` | Manually register target     |
+| `unregisterTarget` | `(slotKey: TSlot) => void`                   | Manually unregister target      |
 
 **Example:**
 
 ```tsx
 function VideoControls() {
-  const { slotKey, setSlotKey, targets } = usePortal()
+  const { slotKey, setSlotKey, targets } = VideoPortal.usePortal()
 
   return (
     <div>
-      <p>Current slotKey: {slotKey || 'none'}</p>
-      <p>Available targets: {Array.from(targets.keys()).join(', ')}</p>
+      <p>Current slot: {slotKey || 'none'}</p>
+      <p>Available: {Array.from(targets.keys()).join(', ')}</p>
       <button onClick={() => setSlotKey('main')}>Main</button>
       <button onClick={() => setSlotKey('mini')}>Mini</button>
       <button onClick={() => setSlotKey(null)}>Hide</button>
@@ -206,39 +202,32 @@ function VideoControls() {
 }
 ```
 
-### Constants
-
-#### `DEFAULT_PORTAL_ID`
-
-The default portal ID. Value is `'default'`.
-
-```tsx
-import { DEFAULT_PORTAL_ID } from '@charley-kim/react-unmanaged-portal'
-```
-
 ## Usage Examples
 
-### Video Player (Main ↔ Mini Player)
+### Video Player (Main <-> Mini Player)
 
 ```tsx
-import { Portal, usePortal } from '@charley-kim/react-unmanaged-portal'
+import { createPortal } from '@charley-kim/react-unmanaged-portal'
+
+const VideoPortal = createPortal({
+  id: 'video',
+  slots: ['main', 'mini'],
+} as const)
 
 function VideoApp() {
-  const { slotKey, setSlotKey } = usePortal()
+  const { slotKey, setSlotKey } = VideoPortal.usePortal()
 
   return (
     <>
-      <Portal.Host>
-        <video src="video.mp4" controls />
-      </Portal.Host>
+      <VideoPortal.Host node={<video src="video.mp4" controls />} />
 
       <main>
-        <Portal.Slot slotKey="main" />
+        <VideoPortal.Slot slotKey="main" />
         <button onClick={() => setSlotKey('mini')}>Minimize</button>
       </main>
 
       <aside>
-        <Portal.Slot slotKey="mini" />
+        <VideoPortal.Slot slotKey="mini" />
         <button onClick={() => setSlotKey('main')}>Maximize</button>
       </aside>
     </>
@@ -248,58 +237,47 @@ function VideoApp() {
 
 ### Multiple Portal Instances
 
-You can use multiple independent portals simultaneously:
+Create independent portals for different use cases:
 
 ```tsx
+const VideoPortal = createPortal({
+  id: 'video',
+  slots: ['main', 'mini'],
+} as const)
+
+const ModalPortal = createPortal({
+  id: 'modal',
+  slots: ['center', 'fullscreen'],
+} as const)
+
 function App() {
   return (
     <>
       {/* Video portal */}
-      <Portal.Host portalId="video">
-        <VideoElement />
-      </Portal.Host>
-      <Portal.Slot portalId="video" slotKey="main" />
-      <Portal.Slot portalId="video" slotKey="mini" />
+      <VideoPortal.Host node={<VideoElement />} />
+      <VideoPortal.Slot slotKey="main" />
+      <VideoPortal.Slot slotKey="mini" />
 
       {/* Modal portal (completely independent) */}
-      <Portal.Host portalId="modal">
-        <ModalContent />
-      </Portal.Host>
-      <Portal.Slot portalId="modal" slotKey="center" />
+      <ModalPortal.Host node={<ModalContent />} />
+      <ModalPortal.Slot slotKey="center" />
     </>
   )
 }
 ```
 
-### Custom Container Type
-
-Use the `as` prop to specify the container element type:
-
-```tsx
-<Portal.Host as="section">
-  <video src="..." />
-</Portal.Host>
-
-<Portal.Slot slotKey="main" as="article" className="video-container" />
-```
-
-### Custom SlotKeys
-
-SlotKeys can be freely defined:
-
-```tsx
-<Portal.Slot slotKey="pip" />       // Picture-in-Picture slotKey
-<Portal.Slot slotKey="theater" />   // Theater slotKey
-<Portal.Slot slotKey="fullscreen" />
-```
-
 ### Usage with Routing
 
-Use with React Router to maintain video state across page transitions:
+Maintain video state across page transitions:
 
 ```tsx
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { Portal } from '@charley-kim/react-unmanaged-portal'
+import { createPortal } from '@charley-kim/react-unmanaged-portal'
+
+const VideoPortal = createPortal({
+  id: 'video',
+  slots: ['main', 'mini'],
+} as const)
 
 function App() {
   return (
@@ -309,14 +287,41 @@ function App() {
         <Route path="/video/:id" element={<VideoPage />} />
       </Routes>
 
-      {/* Maintain video state across all pages */}
-      <Portal.Host>
-        <VideoElement />
-      </Portal.Host>
+      {/* Video state maintained across all pages */}
+      <VideoPortal.Host node={<VideoElement />} />
       <MiniPlayer />
     </BrowserRouter>
   )
 }
+```
+
+## Migration from v0.1.x
+
+v0.2.0 introduces a new type-safe API:
+
+```tsx
+// Before (v0.1.x)
+import { Portal, usePortal } from '@charley-kim/react-unmanaged-portal'
+
+<Portal.Host>
+  <video />
+</Portal.Host>
+<Portal.Slot slotKey="main" />
+
+const { setSlotKey } = usePortal()
+
+// After (v0.2.0)
+import { createPortal } from '@charley-kim/react-unmanaged-portal'
+
+const VideoPortal = createPortal({
+  id: 'video',
+  slots: ['main', 'mini'],
+} as const)
+
+<VideoPortal.Host node={<video />} />
+<VideoPortal.Slot slotKey="main" />
+
+const { setSlotKey } = VideoPortal.usePortal()
 ```
 
 ## Requirements

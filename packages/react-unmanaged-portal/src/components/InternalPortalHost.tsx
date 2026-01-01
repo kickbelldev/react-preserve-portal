@@ -4,17 +4,21 @@ import { createPortal } from 'react-dom'
 import { DEFAULT_PORTAL_ID } from '../model/store'
 import { usePortal } from '../model/usePortal'
 
-interface PortalHostProps<T extends keyof HTMLElementTagNameMap = 'div'> {
+interface InternalPortalHostProps<
+  T extends keyof HTMLElementTagNameMap = 'div',
+> {
   portalId?: string
-  children: ReactNode
+  node: ReactNode
   as?: T
 }
 
-export function PortalHost<T extends keyof HTMLElementTagNameMap = 'div'>({
+export function InternalPortalHost<
+  T extends keyof HTMLElementTagNameMap = 'div',
+>({
   portalId = DEFAULT_PORTAL_ID,
-  children,
+  node,
   as: container = 'div' as T,
-}: PortalHostProps<T>) {
+}: InternalPortalHostProps<T>) {
   const unmanagedNodeRef = useRef<HTMLElement>(
     document.createElement(container),
   )
@@ -37,5 +41,5 @@ export function PortalHost<T extends keyof HTMLElementTagNameMap = 'div'>({
   }, [target])
 
   // eslint-disable-next-line react-hooks/refs
-  return <>{createPortal(children, unmanagedNodeRef.current)}</>
+  return <>{createPortal(node, unmanagedNodeRef.current)}</>
 }
