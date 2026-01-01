@@ -1,33 +1,26 @@
 import { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 
-import { MainPortal, usePortalStore } from '@/features/portal'
+import { MainPortal } from '@/features/portal'
 
 import { usePlayerStore } from '../model/store'
 
 interface MainPlayerProps {
-  pathname: string
   src: string
 }
 
-export function MainPlayer({ src, pathname }: MainPlayerProps) {
-  const activate = usePortalStore((s) => s.activate)
-  const setMode = usePortalStore((s) => s.setMode)
+export function MainPlayer({ src }: MainPlayerProps) {
+  const { pathname } = useLocation()
 
-  const play = usePlayerStore((s) => s.play)
-  const stop = usePlayerStore((s) => s.stop)
+  const initVideo = usePlayerStore((s) => s.initVideo)
 
   useEffect(() => {
-    activate(pathname, stop)
-    return () => setMode('mini')
-  }, [pathname, activate, stop, setMode])
-
-  useEffect(() => {
-    play(src)
-  }, [play, src])
+    initVideo(src)
+  }, [initVideo, src])
 
   return (
     <div className="aspect-video max-w-4xl overflow-hidden rounded-lg bg-black">
-      <MainPortal />
+      <MainPortal pathname={pathname} />
     </div>
   )
 }

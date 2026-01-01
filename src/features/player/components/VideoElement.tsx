@@ -5,16 +5,16 @@ import { usePlayerStore } from '../model/store'
  * PortalHost의 children으로 사용되어 container에 렌더링됨
  */
 export function VideoElement() {
+  const setVideoRef = usePlayerStore((s) => s.setVideoRef)
   const src = usePlayerStore((s) => s.src)
-
-  if (!src) return null
 
   return (
     <video
-      src={src}
+      ref={(ref) => setVideoRef(ref)}
+      src={src ?? undefined}
+      playsInline
       controls
-      autoPlay
-      className="h-full w-full object-contain"
+      className="w-full object-contain aspect-video"
     />
   )
 }
