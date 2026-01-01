@@ -32,7 +32,17 @@ export const usePlayerStore = create<PlayerState & PlayerActions>(
 
       setVideoRef: (ref) => set({ videoRef: ref }),
 
-      initVideo: (src) => set({ src, currentTime: 0, duration: 0 }),
+      initVideo: (src) =>
+        set((state) => {
+          if (state.src === src) return state
+
+          return {
+            src,
+            isPlaying: false,
+            currentTime: 0,
+            duration: 0,
+          }
+        }),
 
       togglePlay: () => {
         const { videoRef, isPlaying } = get()
