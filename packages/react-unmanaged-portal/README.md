@@ -1,8 +1,8 @@
-# @charley-kim/react-unmanaged-portal
+# @charley-kim/react-preserve-portal
 
-[![npm version](https://img.shields.io/npm/v/@charley-kim/react-unmanaged-portal.svg)](https://www.npmjs.com/package/@charley-kim/react-unmanaged-portal)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/@charley-kim/react-unmanaged-portal)](https://bundlephobia.com/package/@charley-kim/react-unmanaged-portal)
-[![license](https://img.shields.io/npm/l/@charley-kim/react-unmanaged-portal.svg)](https://github.com/kickbelldev/react-unmanaged-portal/blob/main/LICENSE)
+[![npm version](https://img.shields.io/npm/v/@charley-kim/react-preserve-portal.svg)](https://www.npmjs.com/package/@charley-kim/react-preserve-portal)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/@charley-kim/react-preserve-portal)](https://bundlephobia.com/package/@charley-kim/react-preserve-portal)
+[![license](https://img.shields.io/npm/l/@charley-kim/react-preserve-portal.svg)](https://github.com/kickbelldev/react-preserve-portal/blob/main/LICENSE)
 
 A React portal library that leverages Unmanaged DOM to dynamically move portal content while **preserving the actual DOM instances**.
 
@@ -76,17 +76,17 @@ Useful for any DOM element where recreation is expensive or causes state loss:
 ## Installation
 
 ```bash
-npm install @charley-kim/react-unmanaged-portal
+npm install @charley-kim/react-preserve-portal
 # or
-pnpm add @charley-kim/react-unmanaged-portal
+pnpm add @charley-kim/react-preserve-portal
 # or
-yarn add @charley-kim/react-unmanaged-portal
+yarn add @charley-kim/react-preserve-portal
 ```
 
 ## Quick Start
 
 ```tsx
-import { createPortal } from '@charley-kim/react-unmanaged-portal'
+import { createPortal } from '@charley-kim/react-preserve-portal'
 
 // 1. Create a typed portal
 const VideoPortal = createPortal({
@@ -245,7 +245,7 @@ function VideoControls() {
 ### Video Player (Main <-> Mini Player)
 
 ```tsx
-import { createPortal } from '@charley-kim/react-unmanaged-portal'
+import { createPortal } from '@charley-kim/react-preserve-portal'
 
 const VideoPortal = createPortal({
   id: 'video',
@@ -310,7 +310,7 @@ Maintain video state across page transitions:
 
 ```tsx
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { createPortal } from '@charley-kim/react-unmanaged-portal'
+import { createPortal } from '@charley-kim/react-preserve-portal'
 
 const VideoPortal = createPortal({
   id: 'video',
@@ -339,7 +339,7 @@ v0.2.0 introduces a new type-safe API:
 
 ```tsx
 // Before (v0.1.x)
-import { Portal, usePortal } from '@charley-kim/react-unmanaged-portal'
+import { Portal, usePortal } from '@charley-kim/react-preserve-portal'
 
 <Portal.Host>
   <video />
@@ -349,7 +349,7 @@ import { Portal, usePortal } from '@charley-kim/react-unmanaged-portal'
 const { setSlotKey } = usePortal()
 
 // After (v0.2.0)
-import { createPortal } from '@charley-kim/react-unmanaged-portal'
+import { createPortal } from '@charley-kim/react-preserve-portal'
 
 const VideoPortal = createPortal({
   id: 'video',

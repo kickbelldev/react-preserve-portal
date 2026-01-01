@@ -59,7 +59,7 @@
     }
   ],
   "release": {
-    "projects": ["@charley-kim/react-unmanaged-portal"],
+    "projects": ["@charley-kim/react-preserve-portal"],
     "version": {
       "conventionalCommits": true
     },

@@ -10,7 +10,7 @@
     "lint": "nx lint"
   },
   "dependencies": {
-    "@charley-kim/react-unmanaged-portal": "workspace:*",
+    "@charley-kim/react-preserve-portal": "workspace:*",
     "@tailwindcss/vite": "^4.1.18",
     "clsx": "^2.1.1",
     "react": "^19.2.0",

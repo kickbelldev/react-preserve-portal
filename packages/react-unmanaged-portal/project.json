@@ -1,13 +1,13 @@
 {
-  "name": "@charley-kim/react-unmanaged-portal",
-  "sourceRoot": "packages/react-unmanaged-portal/src",
+  "name": "@charley-kim/react-preserve-portal",
+  "sourceRoot": "packages/react-preserve-portal/src",
   "projectType": "library",
   "targets": {
     "build": {
       "executor": "@nx/vite:build",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "packages/react-unmanaged-portal/dist"
+        "outputPath": "packages/react-preserve-portal/dist"
       }
     },
     "lint": {
@@ -39,8 +39,8 @@
     "publish": {
       "executor": "@nx/js:release-publish",
       "options": {
-        "manifestRootsToUpdate": ["packages/react-unmanaged-portal"],
-        "buildTarget": "@charley-kim/react-unmanaged-portal:build"
+        "manifestRootsToUpdate": ["packages/react-preserve-portal"],
+        "buildTarget": "@charley-kim/react-preserve-portal:build"
       }
     }
   }

@@ -1,5 +1,5 @@
 {
-  "name": "@charley-kim/react-unmanaged-portal",
+  "name": "@charley-kim/react-preserve-portal",
   "version": "0.2.1",
   "type": "module",
   "main": "./dist/index.cjs",
