@@ -1,17 +1,33 @@
-import { RouterProvider, createRouter } from '@tanstack/react-router'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
-import { routeTree } from './routeTree.gen'
+import { VideoElement } from '@/features/player'
+import { MiniPlayer } from '@/features/player/components/MiniPlayer'
+import { PortalHost } from '@/features/portal/components/PortalHost'
 
-const router = createRouter({ routeTree })
+import { RootLayout } from '@/layouts/RootLayout'
 
-declare module '@tanstack/react-router' {
-  interface Register {
-    router: typeof router
-  }
-}
+import { AboutPage } from '@/pages/AboutPage'
+import { HomePage } from '@/pages/HomePage'
+import { VideoPage } from '@/pages/VideoPage'
 
 function App() {
-  return <RouterProvider router={router} />
+  return (
+    <>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<RootLayout />}>
+            <Route index element={<HomePage />} />
+            <Route path="about" element={<AboutPage />} />
+            <Route path="video/:id" element={<VideoPage />} />
+          </Route>
+        </Routes>
+        <PortalHost>
+          <VideoElement />
+        </PortalHost>
+        <MiniPlayer />
+      </BrowserRouter>
+    </>
+  )
 }
 
 export default App
