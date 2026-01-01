@@ -7,8 +7,9 @@ import tseslint from 'typescript-eslint'
 import importPlugin from 'eslint-plugin-import'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
+// Base ESLint configuration shared across all packages
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'node_modules', '.nx']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -23,65 +24,12 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
-    settings: {
-      'import/resolver': {
-        typescript: {
-          alwaysTryTypes: true,
-        },
-      },
-    },
     rules: {
       'import/no-extraneous-dependencies': 'error',
       'import/no-duplicates': 'error',
       'import/no-unused-modules': 'error',
       'import/no-deprecated': 'error',
       'import/no-mutable-exports': 'error',
-      'import/order': [
-        'error',
-        {
-          groups: [
-            'builtin',
-            'external',
-            'internal',
-            'parent',
-            'sibling',
-            'index',
-          ],
-          pathGroups: [
-            {
-              pattern: '@/features/**',
-              group: 'internal',
-              position: 'before',
-            },
-            {
-              pattern: '@/layouts/**',
-              group: 'internal',
-              position: 'before',
-            },
-            {
-              pattern: '@/pages/**',
-              group: 'internal',
-              position: 'before',
-            },
-            {
-              pattern: '@/constants/**',
-              group: 'internal',
-              position: 'before',
-            },
-            {
-              pattern: '@/**',
-              group: 'internal',
-              position: 'after',
-            },
-          ],
-          pathGroupsExcludedImportTypes: ['builtin'],
-          'newlines-between': 'always',
-          alphabetize: {
-            order: 'asc',
-            caseInsensitive: true,
-          },
-        },
-      ],
     },
   },
 ])
