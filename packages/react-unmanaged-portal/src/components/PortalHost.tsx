@@ -13,9 +13,8 @@ interface PortalHostProps<T extends keyof HTMLElementTagNameMap = 'div'> {
 export function PortalHost<T extends keyof HTMLElementTagNameMap = 'div'>({
   portalId = DEFAULT_PORTAL_ID,
   children,
-  as,
+  as: container = 'div' as T,
 }: PortalHostProps<T>) {
-  const container = as ?? 'div'
   const unmanagedNodeRef = useRef<HTMLElement>(
     document.createElement(container),
   )

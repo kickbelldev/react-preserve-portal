@@ -19,7 +19,7 @@ interface PortalSlotProps<
 export function PortalSlot<T extends keyof HTMLElementTagNameMap = 'div'>({
   portalId = DEFAULT_PORTAL_ID,
   mode,
-  as,
+  as: container = 'div' as T,
   ...props
 }: PortalSlotProps<T>) {
   const slotRef = useRef<HTMLElementTagNameMap[T]>(null)
@@ -32,8 +32,6 @@ export function PortalSlot<T extends keyof HTMLElementTagNameMap = 'div'>({
 
     return () => unregisterTarget(mode)
   }, [mode, registerTarget, unregisterTarget])
-
-  const container = as ?? 'div'
 
   // eslint-disable-next-line react-hooks/refs
   return createElement(container, { ref: slotRef, ...props })
