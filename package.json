@@ -7,7 +7,7 @@
     "dev": "nx run demo:dev",
     "build": "nx run-many --target=build --all",
     "build:lib": "nx run @charley-kim/react-unmanaged-portal:build",
-    "test": "nx test",
+    "test": "nx run-many --target=test --all",
     "release": "nx release",
     "lint": "nx run-many --target=lint --all",
     "format": "prettier --write ."
