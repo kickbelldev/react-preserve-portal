@@ -1,4 +1,4 @@
-import { render, screen, waitFor, act } from '@testing-library/react'
+import { render, screen, waitFor, act, renderHook } from '@testing-library/react'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { resetPortal } from '../model/store'
 import { createPortal } from './createPortal'
@@ -9,7 +9,7 @@ describe('createPortal', () => {
     resetPortal('test-audio')
   })
 
-  it('id와 slots를 반환', () => {
+  it('returns id and slots', () => {
     const VideoPortal = createPortal({
       id: 'test-video',
       slots: ['main', 'mini', 'pip'],
@@ -19,7 +19,7 @@ describe('createPortal', () => {
     expect(VideoPortal.slots).toEqual(['main', 'mini', 'pip'])
   })
 
-  it('Host, Slot, usePortal을 반환', () => {
+  it('returns Host, Slot, and usePortal', () => {
     const VideoPortal = createPortal({
       id: 'test-video',
       slots: ['main', 'mini'],
@@ -30,7 +30,7 @@ describe('createPortal', () => {
     expect(VideoPortal.usePortal).toBeDefined()
   })
 
-  it('Host와 Slot이 함께 동작', async () => {
+  it('Host and Slot work together', async () => {
     const VideoPortal = createPortal({
       id: 'test-video',
       slots: ['main', 'mini'],
@@ -50,10 +50,10 @@ describe('createPortal', () => {
 
     render(<TestComponent />)
 
-    // 초기에는 slotKey가 null이므로 콘텐츠가 보이지 않음
+    // Initially content is not visible because slotKey is null
     expect(screen.queryByText('Video Content')).not.toBeInTheDocument()
 
-    // setSlotKey로 main 슬롯 활성화
+    // Activate main slot with setSlotKey
     act(() => {
       screen.getByText('Show Main').click()
     })
@@ -63,7 +63,7 @@ describe('createPortal', () => {
     })
   })
 
-  it('슬롯 간 이동', async () => {
+  it('moves content between slots', async () => {
     const VideoPortal = createPortal({
       id: 'test-video',
       slots: ['main', 'mini'],
@@ -89,7 +89,7 @@ describe('createPortal', () => {
 
     render(<TestComponent />)
 
-    // main 슬롯으로 이동
+    // Move to main slot
     act(() => {
       screen.getByText('Main').click()
     })
@@ -99,7 +99,7 @@ describe('createPortal', () => {
       expect(mainContainer.textContent).toContain('Video Content')
     })
 
-    // mini 슬롯으로 이동
+    // Move to mini slot
     act(() => {
       screen.getByText('Mini').click()
     })
@@ -110,7 +110,7 @@ describe('createPortal', () => {
     })
   })
 
-  it('여러 Portal 인스턴스가 독립적으로 동작', async () => {
+  it('multiple Portal instances work independently', async () => {
     const VideoPortal = createPortal({
       id: 'test-video',
       slots: ['main', 'mini'],
@@ -149,7 +149,7 @@ describe('createPortal', () => {
 
     render(<TestComponent />)
 
-    // 비디오만 활성화
+    // Activate video only
     act(() => {
       screen.getByText('Show Video').click()
     })
@@ -161,7 +161,7 @@ describe('createPortal', () => {
       )
     })
 
-    // 오디오도 활성화
+    // Activate audio as well
     act(() => {
       screen.getByText('Show Audio').click()
     })
@@ -172,88 +172,72 @@ describe('createPortal', () => {
     })
   })
 
-  it('usePortal이 올바른 상태를 반환', () => {
+  it('usePortal returns correct state', () => {
     const VideoPortal = createPortal({
       id: 'test-video',
       slots: ['main', 'mini'],
     } as const)
 
-    let portalState: ReturnType<typeof VideoPortal.usePortal> | null = null
+    render(
+      <>
+        <VideoPortal.Slot slotKey="main" />
+        <VideoPortal.Slot slotKey="mini" />
+      </>,
+    )
 
-    function TestComponent() {
-      portalState = VideoPortal.usePortal()
-      return (
-        <>
-          <VideoPortal.Slot slotKey="main" />
-          <VideoPortal.Slot slotKey="mini" />
-        </>
-      )
-    }
+    const { result } = renderHook(() => VideoPortal.usePortal())
 
-    render(<TestComponent />)
-
-    expect(portalState).not.toBeNull()
-    expect(portalState!.slotKey).toBeNull()
-    expect(portalState!.returnPath).toBeNull()
-    expect(portalState!.targets.size).toBe(2)
-    expect(portalState!.targets.has('main')).toBe(true)
-    expect(portalState!.targets.has('mini')).toBe(true)
+    expect(result.current.slotKey).toBeNull()
+    expect(result.current.returnPath).toBeNull()
+    expect(result.current.targets.size).toBe(2)
+    expect(result.current.targets.has('main')).toBe(true)
+    expect(result.current.targets.has('mini')).toBe(true)
   })
 
-  it('returnPath 설정 및 조회', () => {
+  it('sets and gets returnPath', () => {
     const VideoPortal = createPortal({
       id: 'test-video',
       slots: ['main'],
     } as const)
 
-    let portalState: ReturnType<typeof VideoPortal.usePortal> | null = null
+    render(<VideoPortal.Slot slotKey="main" />)
 
-    function TestComponent() {
-      portalState = VideoPortal.usePortal()
-      return <VideoPortal.Slot slotKey="main" />
-    }
-
-    render(<TestComponent />)
+    const { result } = renderHook(() => VideoPortal.usePortal())
 
     act(() => {
-      portalState!.setReturnPath('/video/123')
+      result.current.setReturnPath('/video/123')
     })
 
-    expect(portalState!.returnPath).toBe('/video/123')
+    expect(result.current.returnPath).toBe('/video/123')
   })
 
-  it('reset으로 상태 초기화', () => {
+  it('resets state with reset()', () => {
     const VideoPortal = createPortal({
       id: 'test-video',
       slots: ['main'],
     } as const)
 
-    let portalState: ReturnType<typeof VideoPortal.usePortal> | null = null
+    render(<VideoPortal.Slot slotKey="main" />)
 
-    function TestComponent() {
-      portalState = VideoPortal.usePortal()
-      return <VideoPortal.Slot slotKey="main" />
-    }
-
-    render(<TestComponent />)
+    const { result } = renderHook(() => VideoPortal.usePortal())
 
     act(() => {
-      portalState!.setSlotKey('main')
-      portalState!.setReturnPath('/video/123')
+      result.current.setSlotKey('main')
+      result.current.setReturnPath('/video/123')
     })
 
-    expect(portalState!.slotKey).toBe('main')
-    expect(portalState!.returnPath).toBe('/video/123')
+    expect(result.current.slotKey).toBe('main')
+    expect(result.current.returnPath).toBe('/video/123')
 
     act(() => {
-      portalState!.reset()
+      result.current.reset()
     })
 
-    expect(portalState!.slotKey).toBeNull()
-    expect(portalState!.returnPath).toBeNull()
+    expect(result.current.slotKey).toBeNull()
+    expect(result.current.returnPath).toBeNull()
   })
 
-  it('Slot에 HTML 속성 전달', () => {
+  it('passes HTML attributes to Slot', () => {
     const VideoPortal = createPortal({
       id: 'test-video',
       slots: ['main'],
@@ -271,7 +255,7 @@ describe('createPortal', () => {
     expect(slot.className).toBe('video-slot')
   })
 
-  it('Host에 커스텀 컨테이너 태그 사용', async () => {
+  it('uses custom container tag for Host', async () => {
     const VideoPortal = createPortal({
       id: 'test-video',
       slots: ['main'],
