@@ -27,6 +27,16 @@
     "data-visualization"
   ],
   "version": "0.2.4",
+  "license": "MIT",
+  "author": "Charley Kim",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kickbelldev/react-preserve-portal.git"
+  },
+  "homepage": "https://github.com/kickbelldev/react-preserve-portal#readme",
+  "bugs": {
+    "url": "https://github.com/kickbelldev/react-preserve-portal/issues"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
