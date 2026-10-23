@@ -1,7 +1,7 @@
-import type { HTMLAttributes, ReactNode } from 'react'
+import type { HTMLAttributes, ReactElement, ReactNode } from 'react'
 
 /**
- * createPortal 옵션
+ * Define a portal once, outside React render. IDs share state within a module.
  */
 export interface CreatePortalOptions<
   TId extends string,
@@ -12,15 +12,17 @@ export interface CreatePortalOptions<
 }
 
 /**
- * Host 컴포넌트 props
+ * Keep Host mounted to preserve its children. Use children or the legacy node prop.
  */
-export interface HostProps<T extends keyof HTMLElementTagNameMap = 'div'> {
-  node: ReactNode
+export type HostProps<T extends keyof HTMLElementTagNameMap = 'div'> = {
   as?: T
-}
+} & (
+  | { children: ReactNode; node?: never }
+  | { node: ReactNode; children?: never }
+)
 
 /**
- * Slot 컴포넌트 props
+ * A DOM destination for portal content.
  */
 export interface SlotProps<
   TSlot extends string,
@@ -31,7 +33,7 @@ export interface SlotProps<
 }
 
 /**
- * usePortal 훅 반환 타입
+ * Portal state and stable actions. Treat targets as a read-only snapshot.
  */
 export interface UsePortalReturn<TSlot extends string> {
   slotKey: TSlot | null
@@ -39,22 +41,24 @@ export interface UsePortalReturn<TSlot extends string> {
   returnPath: string | null
   setReturnPath: (path: string | null) => void
   targets: Map<TSlot, HTMLElement>
+  /** Hide content and clear returnPath without unregistering mounted Slots. */
   reset: () => void
-  registerTarget: (slotKey: TSlot, target: HTMLElement) => void
+  /** Register a manual destination; returns an ownership-safe cleanup function. */
+  registerTarget: (slotKey: TSlot, target: HTMLElement) => () => void
   unregisterTarget: (slotKey: TSlot) => void
 }
 
 /**
- * createPortal 반환 타입
+ * Typed components and hook bound to one portal ID.
  */
 export interface TypedPortal<TId extends string, TSlot extends string> {
   readonly id: TId
   readonly slots: readonly TSlot[]
   Host: <T extends keyof HTMLElementTagNameMap = 'div'>(
     props: HostProps<T>,
-  ) => ReactNode
+  ) => ReactElement | null
   Slot: <T extends keyof HTMLElementTagNameMap = 'div'>(
     props: SlotProps<TSlot, T>,
-  ) => ReactNode
+  ) => ReactElement | null
   usePortal: () => UsePortalReturn<TSlot>
 }

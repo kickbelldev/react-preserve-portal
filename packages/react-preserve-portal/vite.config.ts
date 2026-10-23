@@ -21,7 +21,7 @@ export default defineConfig({
       fileName: (format) => `index.${format === 'es' ? 'js' : 'cjs'}`,
     },
     rollupOptions: {
-      external: ['react', 'react-dom', 'react/jsx-runtime'],
+      external: (id) => /^(react|react-dom)(\/|$)/.test(id),
       output: {
         globals: {
           react: 'React',

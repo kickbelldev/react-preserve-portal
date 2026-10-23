@@ -11,11 +11,9 @@ import type {
 } from './types'
 
 export function createPortal<
-  TId extends string,
-  TSlots extends readonly string[],
->(
-  options: CreatePortalOptions<TId, TSlots>,
-): TypedPortal<TId, TSlots[number]> {
+  const TId extends string,
+  const TSlots extends readonly string[],
+>(options: CreatePortalOptions<TId, TSlots>): TypedPortal<TId, TSlots[number]> {
   type TSlot = TSlots[number]
 
   const { id, slots } = options

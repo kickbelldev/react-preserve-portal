@@ -1,10 +1,14 @@
 import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { resetPortal, register } from './store'
+import { resetPortal, register, unregister, getOrCreatePortal } from './store'
 import { usePortal } from './usePortal'
 
 describe('usePortal', () => {
   beforeEach(() => {
+    for (const id of ['test-portal', 'default']) {
+      for (const key of getOrCreatePortal(id).targets.keys())
+        unregister(id, key)
+    }
     resetPortal('test-portal')
     resetPortal('default')
   })

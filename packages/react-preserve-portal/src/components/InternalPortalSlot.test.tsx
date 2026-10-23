@@ -78,9 +78,7 @@ describe('InternalPortalSlot', () => {
   })
 
   it('removes target on unmount', () => {
-    const { container, unmount } = render(
-      <InternalPortalSlot slotKey="main" />,
-    )
+    const { container, unmount } = render(<InternalPortalSlot slotKey="main" />)
 
     const element = container.firstChild as HTMLElement
     const instanceBefore = getOrCreatePortal('default')
@@ -125,11 +123,9 @@ describe('InternalPortalSlot', () => {
 
     unmount1()
 
-    // When first one unmounts, cleanup removes 'main' slot key
-    // Second InternalPortalSlot is still mounted, but
-    // useLayoutEffect doesn't re-run, so it's not re-registered
+    // Stale cleanup must leave the newer mounted Slot registered.
     const instanceAfter = getOrCreatePortal('default')
-    expect(instanceAfter.targets.has('main')).toBe(false)
+    expect(instanceAfter.targets.get('main')).toBe(element2)
   })
 
   it('manages multiple InternalPortalSlot with different portal IDs independently', () => {
