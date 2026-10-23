@@ -25,7 +25,6 @@ jobs:
     env:
       NX_DAEMON: 'false'
       NX_TUI: 'false'
-      NODE_ENV: production
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,6 +35,8 @@ jobs:
       - run: corepack enable
       - run: corepack pnpm install --frozen-lockfile
       - run: corepack pnpm exec nx run-many --projects=docs --targets=build,typecheck,lint --output-style=static
+        env:
+          NODE_ENV: production
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
