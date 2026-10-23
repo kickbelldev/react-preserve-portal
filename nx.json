@@ -13,7 +13,7 @@
       "dependsOn": ["^preview"]
     },
     "lint": {
-      "dependsOn": ["^lint"],
+      "dependsOn": ["^lint", "^build"],
       "cache": true,
       "inputs": ["default", "{workspaceRoot}/eslint.config.js"]
     },
