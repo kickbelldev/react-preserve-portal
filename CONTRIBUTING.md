@@ -39,6 +39,35 @@ Nx lint task. In a container that cannot create Nx plugin sockets, use
 `NX_DAEMON=false NX_ISOLATE_PLUGINS=false`; run browser/server checks in an
 execution context that permits local sockets.
 
+## Documentation website
+
+The bilingual VitePress site lives in `apps/docs`. Keep Korean pages and their
+`en/` counterparts in sync. Document actual guarantees separately from proposals.
+The playground dynamically mounts the real React library after hydration; React
+and the interactive example are not required to read the static documentation.
+
+```bash
+corepack pnpm docs:dev
+corepack pnpm docs:build
+corepack pnpm docs:preview
+```
+
+The production build writes `dist/apps/docs` and fails on broken internal page
+links. The site base is `/react-preserve-portal/`; use VitePress-relative links so
+assets, search, and navigation work under that subpath. Validate both locales,
+mobile layouts, local search, dark mode, and preservation in the real playground.
+With Python Playwright and Chromium installed, `python scripts/docs-smoke.py`
+checks these flows against the preview. Pass a site base URL to check a deployment.
+Set `CHROMIUM_PATH` if the browser is not at `/usr/bin/chromium`. Restart the preview
+after rebuilding so its static-file cache matches the new assets.
+
+GitHub Pages uses **GitHub Actions** as its build source. The Documentation
+workflow builds and uploads the static artifact, then deploys from `main` using
+the `github-pages` environment. It can also be dispatched manually from `main`.
+No npm token or third-party hosting account is needed. In repository Settings →
+Pages, choose GitHub Actions when setting this up in a fork. The expected URL is
+https://kickbelldev.github.io/react-preserve-portal/.
+
 ## Release
 
 1. Update the package version and its CHANGELOG. Document compatibility changes.

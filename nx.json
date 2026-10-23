@@ -17,6 +17,9 @@
       "cache": true,
       "inputs": ["default", "{workspaceRoot}/eslint.config.js"]
     },
+    "typecheck": {
+      "dependsOn": ["^build"]
+    },
     "test": {
       "cache": true,
       "inputs": [

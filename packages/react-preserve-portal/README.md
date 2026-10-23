@@ -15,6 +15,10 @@ Requires React and React DOM 18 or later. TypeScript users need TypeScript 5 or
 later for automatic literal inference. The library has no runtime dependencies
 other than its React peer dependencies.
 
+Read the [technical documentation](https://kickbelldev.github.io/react-preserve-portal/en/)
+([한국어](https://kickbelldev.github.io/react-preserve-portal/)) for detailed guides,
+API reference, browser compatibility, and an interactive playground.
+
 ## Quick start
 
 Create the portal **once, outside component render**. Keep its `Host` mounted for
