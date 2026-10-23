@@ -14,17 +14,22 @@
       "executor": "@nx/eslint:lint",
       "options": {
         "lintFilePatterns": ["{projectRoot}/src/**/*.{ts,tsx}"],
-        "fix": true
+        "fix": false
       }
     },
     "test": {
       "executor": "@nx/vitest:test",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "passWithNoTests": true,
+        "passWithNoTests": false,
         "config": "{projectRoot}/vitest.config.ts",
-        "reportsDirectory": "{workspaceRoot}/coverage/{projectRoot}"
+        "reportsDirectory": "{workspaceRoot}/coverage/{projectRoot}",
+        "reporters": ["default"]
       }
+    },
+    "dev": {
+      "continuous": true,
+      "dependsOn": ["build"]
     }
   },
   "release": {

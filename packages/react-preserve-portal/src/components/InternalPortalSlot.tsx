@@ -1,20 +1,12 @@
-import {
-  createElement,
-  useLayoutEffect,
-  useRef,
-  type HTMLAttributes,
-} from 'react'
+import { createElement, useCallback, useRef } from 'react'
 
-import { DEFAULT_PORTAL_ID } from '../model/store'
-import { usePortal } from '../model/usePortal'
+import type { SlotProps } from '../core/types'
+import { DEFAULT_PORTAL_ID, getPortalStore } from '../model/store'
 
-interface InternalPortalSlotProps<
-  T extends keyof HTMLElementTagNameMap = 'div',
-> extends HTMLAttributes<HTMLElementTagNameMap[T]> {
-  portalId?: string
-  slotKey: string
-  as?: T
-}
+type InternalPortalSlotProps<T extends keyof HTMLElementTagNameMap> = SlotProps<
+  string,
+  T
+> & { portalId?: string }
 
 export function InternalPortalSlot<
   T extends keyof HTMLElementTagNameMap = 'div',
@@ -24,17 +16,20 @@ export function InternalPortalSlot<
   as: container = 'div' as T,
   ...props
 }: InternalPortalSlotProps<T>) {
-  const slotRef = useRef<HTMLElementTagNameMap[T]>(null)
-  const { registerTarget, unregisterTarget } = usePortal(portalId)
+  const store = getPortalStore(portalId)
+  const cleanupRef = useRef<(() => void) | undefined>(undefined)
+  // Explicitly return void for compatibility with both React 18 and 19.
+  const ref = useCallback(
+    (target: HTMLElement | null) => {
+      cleanupRef.current?.()
+      cleanupRef.current = target
+        ? store.registerTarget(slotKey, target)
+        : undefined
+    },
+    [store, slotKey],
+  )
 
-  useLayoutEffect(() => {
-    if (slotRef.current) {
-      registerTarget(slotKey, slotRef.current)
-    }
-
-    return () => unregisterTarget(slotKey)
-  }, [slotKey, registerTarget, unregisterTarget])
-
+  // createElement attaches the callback; it does not invoke it during render.
   // eslint-disable-next-line react-hooks/refs
-  return createElement(container, { ref: slotRef, ...props })
+  return createElement(container, { ...props, ref })
 }

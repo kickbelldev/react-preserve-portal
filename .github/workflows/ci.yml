@@ -1,0 +1,28 @@
+name: CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      NX_DAEMON: 'false'
+      NX_TUI: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: corepack enable
+      - run: corepack pnpm install --frozen-lockfile
+      - run: corepack pnpm exec nx run-many --targets=test,typecheck,lint --all --parallel=2 --skip-nx-cache --output-style=static
+      - run: corepack pnpm build --skip-nx-cache
+        env:
+          NODE_ENV: production
+      - run: |
+          mkdir -p /tmp/portal-release
+          corepack pnpm --dir packages/react-preserve-portal pack --pack-destination /tmp/portal-release
+      - run: node scripts/verify-package.mjs /tmp/portal-release/*.tgz 18
+      - run: node scripts/verify-package.mjs /tmp/portal-release/*.tgz 19

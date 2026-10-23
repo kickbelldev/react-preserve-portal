@@ -11,8 +11,11 @@ import {
 
 describe('store', () => {
   beforeEach(() => {
-    // Reset portal state before each test
-    // Reset portal IDs used in tests
+    // Remove manually registered destinations between tests.
+    for (const id of ['test-portal', 'new-portal', 'portal1', 'portal2']) {
+      for (const key of getOrCreatePortal(id).targets.keys())
+        unregister(id, key)
+    }
     resetPortal('test-portal')
     resetPortal('new-portal')
     resetPortal('portal1')
@@ -37,9 +40,8 @@ describe('store', () => {
 
     it('returns existing instance for existing portal ID', () => {
       const instance1 = getOrCreatePortal('test-portal')
-      instance1.slotKey = 'test-slotKey'
       const instance2 = getOrCreatePortal('test-portal')
-      expect(instance2.slotKey).toBe('test-slotKey')
+      expect(instance2).toBe(instance1)
     })
   })
 
@@ -145,7 +147,7 @@ describe('store', () => {
   })
 
   describe('resetPortal', () => {
-    it('resets portal instance to initial state', () => {
+    it('resets navigation state while keeping registered targets', () => {
       const target = document.createElement('div')
       register('test-portal', 'test-slotKey', target)
       setSlotKey('test-portal', 'test-slotKey')
@@ -154,7 +156,7 @@ describe('store', () => {
       resetPortal('test-portal')
 
       const instance = getOrCreatePortal('test-portal')
-      expect(instance.targets.size).toBe(0)
+      expect(instance.targets.get('test-slotKey')).toBe(target)
       expect(instance.slotKey).toBeNull()
       expect(instance.returnPath).toBeNull()
     })

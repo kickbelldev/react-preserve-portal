@@ -1,5 +1,3 @@
-import { useSyncExternalStore } from 'react'
-
 export const DEFAULT_PORTAL_ID = 'default'
 
 export interface PortalInstance {
@@ -8,98 +6,100 @@ export interface PortalInstance {
   returnPath: string | null
 }
 
-// Module-level state
-let portals = new Map<string, PortalInstance>()
-const listeners = new Set<() => void>()
+function createPortalStore() {
+  const initialState: PortalInstance = {
+    targets: new Map(),
+    slotKey: null,
+    returnPath: null,
+  }
+  let state = initialState
+  const listeners = new Set<() => void>()
 
-function emitChange() {
-  listeners.forEach((listener) => listener())
-}
+  function update(next: PortalInstance) {
+    state = next
+    listeners.forEach((listener) => listener())
+  }
 
-function getSnapshot() {
-  return portals
-}
+  function unregisterTarget(slotKey: string, target?: HTMLElement) {
+    if (!state.targets.has(slotKey)) return
+    // An old Slot's cleanup must not remove a newer registration.
+    if (target && state.targets.get(slotKey) !== target) return
 
-function subscribe(listener: () => void) {
-  listeners.add(listener)
-  return () => {
-    listeners.delete(listener)
+    const targets = new Map(state.targets)
+    targets.delete(slotKey)
+    update({ ...state, targets })
+  }
+
+  return {
+    getSnapshot: () => state,
+    // Server rendering must not observe mutable client/request state.
+    getServerSnapshot: () => initialState,
+    subscribe(listener: () => void) {
+      listeners.add(listener)
+      return () => {
+        listeners.delete(listener)
+      }
+    },
+    registerTarget(slotKey: string, target: HTMLElement) {
+      if (state.targets.get(slotKey) !== target) {
+        const targets = new Map(state.targets)
+        targets.set(slotKey, target)
+        update({ ...state, targets })
+      }
+      return () => unregisterTarget(slotKey, target)
+    },
+    unregisterTarget,
+    setSlotKey(slotKey: string | null) {
+      if (state.slotKey !== slotKey) update({ ...state, slotKey })
+    },
+    setReturnPath(returnPath: string | null) {
+      if (state.returnPath !== returnPath) update({ ...state, returnPath })
+    },
+    reset() {
+      if (state.slotKey !== null || state.returnPath !== null) {
+        // Mounted Slots stay registered so the content can be shown again.
+        update({ ...state, slotKey: null, returnPath: null })
+      }
+    },
   }
 }
 
-const createEmptyInstance = (): PortalInstance => ({
-  targets: new Map(),
-  slotKey: null,
-  returnPath: null,
-})
+// IDs retain their existing sharing semantics, with subscriptions per portal.
+const portals = new Map<string, ReturnType<typeof createPortalStore>>()
 
-// Actions
+export function getPortalStore(portalId: string) {
+  let store = portals.get(portalId)
+  if (!store) {
+    store = createPortalStore()
+    portals.set(portalId, store)
+  }
+  return store
+}
+
 export function getOrCreatePortal(portalId: string): PortalInstance {
-  const existing = portals.get(portalId)
-  if (existing) return existing
-
-  const newInstance = createEmptyInstance()
-  portals = new Map(portals)
-  portals.set(portalId, newInstance)
-  emitChange()
-  return newInstance
+  return getPortalStore(portalId).getSnapshot()
 }
 
 export function register(
   portalId: string,
   slotKey: string,
   target: HTMLElement,
-): void {
-  const instance = portals.get(portalId) ?? createEmptyInstance()
-  const targets = new Map(instance.targets)
-  targets.set(slotKey, target)
-
-  portals = new Map(portals)
-  portals.set(portalId, { ...instance, targets })
-  emitChange()
+) {
+  return getPortalStore(portalId).registerTarget(slotKey, target)
 }
 
-export function unregister(portalId: string, slotKey: string): void {
-  const instance = portals.get(portalId)
-  if (!instance) return
-
-  const targets = new Map(instance.targets)
-  targets.delete(slotKey)
-
-  portals = new Map(portals)
-  portals.set(portalId, { ...instance, targets })
-  emitChange()
+export function unregister(portalId: string, slotKey: string) {
+  portals.get(portalId)?.unregisterTarget(slotKey)
 }
 
-export function setSlotKey(portalId: string, slotKey: string | null): void {
-  const instance = portals.get(portalId) ?? createEmptyInstance()
-
-  portals = new Map(portals)
-  portals.set(portalId, { ...instance, slotKey })
-  emitChange()
+export function setSlotKey(portalId: string, slotKey: string | null) {
+  getPortalStore(portalId).setSlotKey(slotKey)
 }
 
-export function setReturnPath(portalId: string, path: string | null): void {
-  const instance = portals.get(portalId) ?? createEmptyInstance()
-
-  portals = new Map(portals)
-  portals.set(portalId, { ...instance, returnPath: path })
-  emitChange()
+export function setReturnPath(portalId: string, path: string | null) {
+  getPortalStore(portalId).setReturnPath(path)
 }
 
-export function resetPortal(portalId: string): void {
-  const instance = portals.get(portalId)
-  if (!instance) return
-
-  portals = new Map(portals)
-  portals.set(portalId, createEmptyInstance())
-  emitChange()
-}
-
-// Hook
-export function usePortalStore<T>(
-  selector: (portals: Map<string, PortalInstance>) => T,
-): T {
-  const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
-  return selector(snapshot)
+export function resetPortal(portalId: string) {
+  portals.get(portalId)?.reset()
 }

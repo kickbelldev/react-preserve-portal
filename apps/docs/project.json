@@ -1,0 +1,43 @@
+{
+  "name": "docs",
+  "projectType": "application",
+  "sourceRoot": "apps/docs",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "outputs": ["{workspaceRoot}/dist/apps/docs"],
+      "options": { "command": "vitepress build .", "cwd": "apps/docs" }
+    },
+    "dev": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "dependsOn": ["^build"],
+      "options": {
+        "command": "vitepress dev . --host 127.0.0.1 --port 4173",
+        "cwd": "apps/docs"
+      }
+    },
+    "preview": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "dependsOn": [],
+      "options": {
+        "command": "vitepress preview . --host 127.0.0.1 --port 4173",
+        "cwd": "apps/docs"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "options": { "command": "tsc --noEmit -p apps/docs/tsconfig.json" }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["apps/docs/.vitepress/theme/playground.tsx"],
+        "fix": false
+      }
+    }
+  }
+}

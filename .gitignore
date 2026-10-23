@@ -31,3 +31,5 @@ dist-ssr
 .nx/cache
 .nx/workspace-data
 vite.config.*.timestamp*
+.vitepress/cache
+__pycache__/
