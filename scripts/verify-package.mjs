@@ -45,11 +45,17 @@ const Portal = createPortal({ id: 'typed-consumer', slots: ['main', 'mini'] })
 const children = <Portal.Host><input defaultValue="ok" /></Portal.Host>
 const legacy = <Portal.Host node={<input />} />
 const slot = <Portal.Slot slotKey="main" as="section" />
+const connected = <Portal.Host mountWhen="connected"><input autoFocus /></Portal.Host>
+const disposed: boolean = Portal.dispose()
+// @ts-expect-error Slot content would overwrite the portal's DOM.
+const invalidChildren = <Portal.Slot slotKey="main">placeholder</Portal.Slot>
+// @ts-expect-error Raw HTML also overwrites the portal's DOM.
+const invalidHTML = <Portal.Slot slotKey="main" dangerouslySetInnerHTML={{ __html: 'bad' }} />
 // @ts-expect-error Slot keys must be inferred without as const.
 const invalidSlot = <Portal.Slot slotKey="wrong" />
 // @ts-expect-error The two content props are mutually exclusive.
 const invalidHost = <Portal.Host node="old">new</Portal.Host>
-void [children, legacy, slot, invalidSlot, invalidHost]
+void [children, legacy, slot, connected, disposed, invalidChildren, invalidHTML, invalidSlot, invalidHost]
 `,
   )
   run(process.execPath, [

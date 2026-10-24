@@ -1,14 +1,10 @@
-import {
-  useInsertionEffect,
-  useLayoutEffect,
-  useState,
-  useSyncExternalStore,
-} from 'react'
+import { useLayoutEffect, useState, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
 
 import type { HostProps } from '../core/types'
 import { DEFAULT_PORTAL_ID } from '../model/store'
 import { usePortal } from '../model/usePortal'
+import { useCommittedEffect } from '../model/useCommittedEffect'
 
 type InternalPortalHostProps<T extends keyof HTMLElementTagNameMap> =
   HostProps<T> & { portalId?: string }
@@ -83,8 +79,8 @@ function ClientPortalHost<T extends keyof HTMLElementTagNameMap = 'div'>({
   }, [hasMounted, mountWhen, unmanagedNode, target])
 
   // Layout-effect cleanup also runs when Suspense/Activity hides a Host.
-  // Insertion cleanup runs on final deletion without detaching hidden content.
-  useInsertionEffect(() => () => unmanagedNode.remove(), [unmanagedNode])
+  // Track final deletion across React 18 Suspense and React 19 Activity.
+  useCommittedEffect(() => () => unmanagedNode.remove(), [unmanagedNode])
 
   return hasMounted
     ? createPortal(children !== undefined ? children : node, unmanagedNode)

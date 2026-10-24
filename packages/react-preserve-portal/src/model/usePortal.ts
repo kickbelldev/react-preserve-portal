@@ -1,12 +1,12 @@
-import { useInsertionEffect, useSyncExternalStore } from 'react'
+import { useSyncExternalStore } from 'react'
 
 import { DEFAULT_PORTAL_ID, getPortalStore } from './store'
+import { useCommittedEffect } from './useCommittedEffect'
 
 export function usePortal(portalId: string = DEFAULT_PORTAL_ID) {
   const store = getPortalStore(portalId)
-  // Insertion effects track the committed lifetime, including hidden Activity
-  // trees. retain/release never publish state or schedule React updates.
-  useInsertionEffect(store.retain, [store])
+  // Retain hidden owners too; retain/release never schedule React updates.
+  useCommittedEffect(store.retain, [store])
   const state = useSyncExternalStore(
     store.subscribe,
     store.getSnapshot,

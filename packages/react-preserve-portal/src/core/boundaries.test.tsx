@@ -24,10 +24,10 @@ describe('portal ownership and lifetime boundaries', () => {
     const P = createPortal({ id: 'empty-slot-contract', slots: ['main'] })
     // @ts-expect-error Slot is an empty destination.
     const children = <P.Slot slotKey="main">placeholder</P.Slot>
-    // @ts-expect-error React must not overwrite the portal container.
     const html = (
       <P.Slot
         slotKey="main"
+        // @ts-expect-error React must not overwrite the portal container.
         dangerouslySetInnerHTML={{ __html: 'placeholder' }}
       />
     )

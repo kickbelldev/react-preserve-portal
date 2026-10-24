@@ -1,7 +1,8 @@
-import { createElement, useCallback, useInsertionEffect, useRef } from 'react'
+import { createElement, useCallback, useRef } from 'react'
 
 import type { SlotProps } from '../core/types'
 import { DEFAULT_PORTAL_ID, getPortalStore } from '../model/store'
+import { useCommittedEffect } from '../model/useCommittedEffect'
 
 type InternalPortalSlotProps<T extends keyof HTMLElementTagNameMap> = SlotProps<
   string,
@@ -19,7 +20,7 @@ export function InternalPortalSlot<
   ...props
 }: InternalPortalSlotProps<T>) {
   const store = getPortalStore(portalId)
-  useInsertionEffect(store.retain, [store])
+  useCommittedEffect(store.retain, [store])
   const cleanupRef = useRef<(() => void) | undefined>(undefined)
   // Explicitly return void for compatibility with both React 18 and 19.
   const ref = useCallback(
