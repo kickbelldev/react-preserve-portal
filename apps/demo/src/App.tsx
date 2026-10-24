@@ -21,7 +21,7 @@ function App() {
             <Route path="video/:id" element={<VideoPage />} />
           </Route>
         </Routes>
-        <VideoPortal.Host>
+        <VideoPortal.Host mountWhen="connected">
           <VideoElement />
         </VideoPortal.Host>
         <MiniPlayer />

@@ -8,13 +8,23 @@ export function VideoElement() {
   const setVideoRef = usePlayerStore((s) => s.setVideoRef)
   const src = usePlayerStore((s) => s.src)
   const syncTime = usePlayerStore((s) => s.syncTime)
+  const syncPlayback = usePlayerStore((s) => s.syncPlayback)
+  const failPlayback = usePlayerStore((s) => s.failPlayback)
 
   return (
     <video
-      ref={(ref) => setVideoRef(ref)}
+      ref={setVideoRef}
       src={src ?? undefined}
       playsInline
       className="aspect-video w-full object-contain"
+      onPlay={(e) => syncPlayback(e.currentTarget)}
+      onPause={(e) => syncPlayback(e.currentTarget)}
+      onEnded={(e) => syncPlayback(e.currentTarget)}
+      onEmptied={(e) => {
+        syncPlayback(e.currentTarget)
+        syncTime(0, 0)
+      }}
+      onError={(e) => failPlayback(e.currentTarget)}
       onTimeUpdate={(e) => {
         const video = e.currentTarget
         syncTime(video.currentTime, video.duration)

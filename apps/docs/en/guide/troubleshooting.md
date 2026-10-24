@@ -37,6 +37,10 @@ In 0.3.0, mounted Slots stay registered. Call `setSlotKey('main')` to show the c
 
 Check for multiple destinations using the same portal ID and slot key. The last registration wins. For external destinations, use [the returned cleanup function](../api#register-an-external-dom-destination). Mutating the `targets` Map directly bypasses notifications and cleanup.
 
+## Playback controls disagree with the video
+
+Treat native `play`, `pause`, and `ended` events as the source of playback state. Handle the promise returned by `play()`; autoplay policy, source changes, and network errors can reject it. Do not simply invert a boolean when the user clicks. Pause explicitly before closing, and ignore stale play results after source changes or unmounting. A detached video can be paused by the browser even when its DOM identity survives. The repository demo handles these paths and tests playback with a local canvas stream.
+
 ## Report a bug
 
 Open a [GitHub issue](https://github.com/kickbelldev/react-preserve-portal/issues) with library, React, and browser versions, a reproduction, Host/Slot lifetime around the move, and `moveBefore` support. Remove private data and credentials from reproductions.

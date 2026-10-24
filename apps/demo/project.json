@@ -28,6 +28,14 @@
         "lintFilePatterns": ["{projectRoot}/src/**/*.{ts,tsx}"],
         "fix": false
       }
+    },
+    "test": {
+      "executor": "@nx/vitest:test",
+      "options": {
+        "config": "{projectRoot}/vitest.config.ts",
+        "passWithNoTests": false,
+        "reporters": ["default"]
+      }
     }
   }
 }
