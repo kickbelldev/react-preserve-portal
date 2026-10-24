@@ -16,8 +16,7 @@ corepack pnpm exec nx run demo:dev
 - Both destinations stay mounted in the shared layout, allowing connected moves
 - Native playback-event synchronization, explicit pause on close, and play-error handling
 
-The demo uses the unreleased workspace source, including `mountWhen="connected"`.
-That option is not available in the published npm 0.3.0 package yet.
+The demo uses the workspace library and the 0.4.0 `mountWhen="connected"` option.
 
 Run `corepack pnpm exec nx run demo:test` for media-store regressions. After
 building the demo, run `python scripts/demo-smoke.py` with Playwright and Chromium

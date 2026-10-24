@@ -22,7 +22,7 @@ yarn add @charley-kim/react-preserve-portal
 
 :::
 
-Requires React and React DOM 18 or later. These docs describe the **0.3.0 API**.
+Requires React and React DOM 18 or later. These docs describe the **0.4.0 API**.
 
 ## Define and render a portal
 

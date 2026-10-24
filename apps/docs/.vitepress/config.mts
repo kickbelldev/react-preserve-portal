@@ -50,11 +50,11 @@ function sidebar(en: boolean) {
       items: [
         { text: 'API', link: `${prefix}/api` },
         {
-          text: en ? 'Lifecycle fixes (unreleased)' : '수명 개선 (미출시)',
+          text: en ? 'Lifecycle and ownership' : '수명과 소유권',
           link: `${prefix}/guide/lifecycle-safety`,
         },
         {
-          text: en ? 'Migration to 0.3' : '0.3 마이그레이션',
+          text: en ? 'Migration to 0.4' : '0.4 마이그레이션',
           link: `${prefix}/migration`,
         },
       ],
@@ -94,7 +94,7 @@ export default defineConfig({
           { text: 'API', link: '/api' },
           { text: '플레이그라운드', link: '/playground' },
           {
-            text: 'v0.3.0',
+            text: 'v0.4.0',
             link: 'https://www.npmjs.com/package/@charley-kim/react-preserve-portal',
           },
         ],
@@ -127,7 +127,7 @@ export default defineConfig({
           { text: 'API', link: '/en/api' },
           { text: 'Playground', link: '/en/playground' },
           {
-            text: 'v0.3.0',
+            text: 'v0.4.0',
             link: 'https://www.npmjs.com/package/@charley-kim/react-preserve-portal',
           },
         ],

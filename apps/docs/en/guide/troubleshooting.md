@@ -31,7 +31,7 @@ This is expected: hiding is not a React unmount. Your content can observe `slotK
 
 ## Show content again after `reset()`
 
-In 0.3.0, mounted Slots stay registered. Call `setSlotKey('main')` to show the content again. To clear the content's internal state, provide an explicit reset action or intentionally remount it with a different key.
+Since 0.3.0, mounted Slots stay registered. Call `setSlotKey('main')` to show the content again. To clear the content's internal state, provide an explicit reset action or intentionally remount it with a different key.
 
 ## A target registration gets replaced
 
