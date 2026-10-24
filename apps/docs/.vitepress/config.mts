@@ -50,6 +50,10 @@ function sidebar(en: boolean) {
       items: [
         { text: 'API', link: `${prefix}/api` },
         {
+          text: en ? 'Lifecycle fixes (unreleased)' : '수명 개선 (미출시)',
+          link: `${prefix}/guide/lifecycle-safety`,
+        },
+        {
           text: en ? 'Migration to 0.3' : '0.3 마이그레이션',
           link: `${prefix}/migration`,
         },

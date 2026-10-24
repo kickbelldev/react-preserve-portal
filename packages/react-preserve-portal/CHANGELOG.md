@@ -1,3 +1,14 @@
+## Unreleased
+
+- Reject Slot children/HTML that could overwrite the portal container.
+- Give each target registration an identity, including repeated registrations of the same element.
+- Add `Host mountWhen="connected"` for initial measurement and autofocus after attachment.
+- Keep Host containers connected when Suspense/Activity cleans up layout effects; remove them on final deletion.
+- Add `Portal.dispose()` for unused IDs, with protection for mounted/hidden owners and manual targets.
+- Expose targets as a `ReadonlyMap` and reject cross-document or cyclic destinations.
+
+These changes are on the source branch and are not included in npm 0.3.0.
+
 ## 0.3.0 (2026-10-24)
 
 ### API

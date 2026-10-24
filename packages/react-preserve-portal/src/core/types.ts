@@ -16,6 +16,8 @@ export interface CreatePortalOptions<
  */
 export type HostProps<T extends keyof HTMLElementTagNameMap = 'div'> = {
   as?: T
+  /** Delay the first content mount until the container is connected. */
+  mountWhen?: 'immediate' | 'connected'
 } & (
   | { children: ReactNode; node?: never }
   | { node: ReactNode; children?: never }
@@ -27,9 +29,14 @@ export type HostProps<T extends keyof HTMLElementTagNameMap = 'div'> = {
 export interface SlotProps<
   TSlot extends string,
   T extends keyof HTMLElementTagNameMap = 'div',
-> extends HTMLAttributes<HTMLElementTagNameMap[T]> {
+> extends Omit<
+  HTMLAttributes<HTMLElementTagNameMap[T]>,
+  'children' | 'dangerouslySetInnerHTML'
+> {
   slotKey: TSlot
   as?: T
+  children?: never
+  dangerouslySetInnerHTML?: never
 }
 
 /**
@@ -40,7 +47,7 @@ export interface UsePortalReturn<TSlot extends string> {
   setSlotKey: (key: TSlot | null) => void
   returnPath: string | null
   setReturnPath: (path: string | null) => void
-  targets: Map<TSlot, HTMLElement>
+  targets: ReadonlyMap<TSlot, HTMLElement>
   /** Hide content and clear returnPath without unregistering mounted Slots. */
   reset: () => void
   /** Register a manual destination; returns an ownership-safe cleanup function. */
@@ -61,4 +68,6 @@ export interface TypedPortal<TId extends string, TSlot extends string> {
     props: SlotProps<TSlot, T>,
   ) => ReactElement | null
   usePortal: () => UsePortalReturn<TSlot>
+  /** Release an unused ID. Returns false while components or targets own it. */
+  dispose: () => boolean
 }

@@ -1,4 +1,9 @@
-import { useLayoutEffect, useState, useSyncExternalStore } from 'react'
+import {
+  useInsertionEffect,
+  useLayoutEffect,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 import { createPortal } from 'react-dom'
 
 import type { HostProps } from '../core/types'
@@ -17,12 +22,24 @@ function ClientPortalHost<T extends keyof HTMLElementTagNameMap = 'div'>({
   node,
   children,
   as: container = 'div' as T,
+  mountWhen = 'immediate',
 }: InternalPortalHostProps<T>) {
   const [unmanagedNode] = useState(() => document.createElement(container))
+  const [hasMounted, setHasMounted] = useState(mountWhen === 'immediate')
   const { slotKey, targets } = usePortal(portalId)
   const target = slotKey === null ? undefined : targets.get(slotKey)
 
   useLayoutEffect(() => {
+    if (target && target.ownerDocument !== unmanagedNode.ownerDocument) {
+      throw new Error(
+        'Portal destinations must belong to the same document as Host.',
+      )
+    }
+    if (target && unmanagedNode.contains(target)) {
+      throw new Error(
+        'A portal cannot move into its own container or descendants.',
+      )
+    }
     if (!target) {
       unmanagedNode.remove()
     } else if (unmanagedNode.parentNode !== target) {
@@ -42,9 +59,36 @@ function ClientPortalHost<T extends keyof HTMLElementTagNameMap = 'div'>({
     }
   }, [target, unmanagedNode])
 
-  useLayoutEffect(() => () => unmanagedNode.remove(), [unmanagedNode])
+  useLayoutEffect(() => {
+    if (hasMounted) return
+    if (mountWhen === 'immediate' || unmanagedNode.isConnected) {
+      // One extra commit intentionally mounts content after its container attaches.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setHasMounted(true)
+      return
+    }
+    // Only observe while waiting for the first connection (including detached
+    // React roots / manual targets attached later). No observer after mounting.
+    const observer = new MutationObserver(() => {
+      if (unmanagedNode.isConnected) {
+        observer.disconnect()
+        setHasMounted(true)
+      }
+    })
+    observer.observe(unmanagedNode.ownerDocument, {
+      childList: true,
+      subtree: true,
+    })
+    return () => observer.disconnect()
+  }, [hasMounted, mountWhen, unmanagedNode, target])
 
-  return createPortal(children !== undefined ? children : node, unmanagedNode)
+  // Layout-effect cleanup also runs when Suspense/Activity hides a Host.
+  // Insertion cleanup runs on final deletion without detaching hidden content.
+  useInsertionEffect(() => () => unmanagedNode.remove(), [unmanagedNode])
+
+  return hasMounted
+    ? createPortal(children !== undefined ? children : node, unmanagedNode)
+    : null
 }
 
 export function InternalPortalHost<
