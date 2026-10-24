@@ -5,6 +5,8 @@ description: createPortal, Host, Slot, usePortal의 타입, 기본값과 동작�
 
 # API 레퍼런스
 
+이 레퍼런스는 npm **0.3.0** 기준입니다. main의 새 API와 강화된 소유권 검사는 [미출시 수명 개선](./guide/lifecycle-safety)을 참고하세요.
+
 ## `createPortal({ id, slots })`
 
 ```tsx

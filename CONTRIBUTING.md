@@ -44,6 +44,11 @@ is tested on React 19.2. Do not replace this matrix with jsdom alone: React 18
 skips insertion cleanup when deleting a suspended tree, while React 19 Activity
 disconnects passive effects when hiding it.
 
+After building the demo, `python scripts/demo-smoke.py` serves the production
+output and tests persistent main/mini Slots, real media events, close/reopen,
+and rejected play requests. It uses a local canvas stream and blocks remote
+video downloads. CI includes the same native and fallback routing checks.
+
 Lint does not rewrite source. To autofix intentionally, pass `--fix=true` to the
 Nx lint task. In a container that cannot create Nx plugin sockets, use
 `NX_DAEMON=false NX_ISOLATE_PLUGINS=false`; run browser/server checks in an

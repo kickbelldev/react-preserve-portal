@@ -62,6 +62,8 @@ Here, `setSlotKey` comes from `Player.usePortal()`. `flushSync` commits the Reac
 
 Popover does not change the React parent or DOM location. `Activity` does not move content between different DOM parents and cannot replace React 18 support. Its Effect cleanup policy also differs from this library's “effects keep running while hidden” behavior. Compose them deliberately.
 
+Guarded disposal and opt-in connected mounting are now implemented on main; see [unreleased lifecycle fixes](./lifecycle-safety). They are not available in npm 0.3.0.
+
 ## Candidates for future work
 
 These are **design candidates, not APIs provided by 0.3.0**.
@@ -69,11 +71,10 @@ These are **design candidates, not APIs provided by 0.3.0**.
 | Priority  | Candidate                                | Question to resolve first                                                                     |
 | --------- | ---------------------------------------- | --------------------------------------------------------------------------------------------- |
 | High      | Hide content in a connected parking area | Must iframe documents survive? What are the focus, accessibility, media, and Effect policies? |
-| High      | Explicit disposal of dynamic instances   | When can shared Hosts, Slots, and subscribers for an ID be safely released?                   |
 | Medium    | Visibility / connection signals          | How do selection, registration, document connectivity, and actual visibility differ?          |
 | As needed | Selector subscriptions                   | Do measured workloads with many portals and frequent updates show a rendering bottleneck?     |
 
-There is currently no demonstrated need for a router, global MutationObserver, or animation engine as a core dependency. The small store and explicit Slot registration keep behavior predictable.
+There is currently no demonstrated need for a router, continuously running global observer, or animation engine as a core dependency. The upcoming connected-mount option observes only until first attachment. The small store and explicit Slot registration keep behavior predictable.
 
 ## Sources
 

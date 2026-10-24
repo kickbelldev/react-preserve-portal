@@ -21,9 +21,13 @@ description: React 상태, DOM 정체성, 브라우저 상태를 구분하고 Ho
 `setSlotKey(null)`과 `reset()`은 React 트리를 언마운트하지 않습니다. Effect, 타이머, 구독이 계속 동작합니다. 미디어를 멈추고 싶으면 `pause()` 등 콘텐츠 자체의 API를 호출하세요.
 :::
 
+## 초기 연결과 숨김 경계
+
+npm 0.3.0에서는 자식이 분리된 컨테이너에서 처음 마운트될 수 있어 최초 측정값이 0이거나 `autoFocus`가 동작하지 않을 수 있습니다. 또한 Host 바깥의 Suspense/Activity가 layout cleanup을 실행하면 실제 언마운트 없이도 컨테이너가 분리됩니다. Host를 경계 밖에 두거나 경계를 Host의 자식 안에 두면 이 정리 경로를 피할 수 있습니다. [미출시 수명 개선](./lifecycle-safety)에서는 연결 후 마운트와 최종 삭제 시 정리로 두 문제를 해결합니다.
+
 ## React 트리와 DOM 트리
 
-React context와 synthetic event는 `Host`가 속한 React 트리를 따릅니다. CSS 상속과 네이티브 이벤트 경로는 콘텐츠가 실제로 놓인 DOM을 따릅니다. 목적지 Slot 위에만 둔 Provider는 Host 콘텐츠에 전달되지 않습니다.
+같은 React root에서 context와 synthetic event는 `Host`가 속한 트리를 따릅니다. 다른 root로 옮기면 목적지 root의 capture/bubble 핸들러도 실행될 수 있으므로 이벤트 격리를 보장하지 않습니다. 다른 문서로의 adoption이나 Shadow DOM 선택·IME도 보장 범위가 아닙니다. CSS 상속과 네이티브 이벤트 경로는 콘텐츠가 실제로 놓인 DOM을 따릅니다. 목적지 Slot 위에만 둔 Provider는 Host 콘텐츠에 전달되지 않습니다.
 
 `Host`의 `as`는 컨테이너 생성 시 결정됩니다. 마운트 중에 바꾸지 마세요. 다른 태그가 꼭 필요하면 Host를 새 key로 마운트해야 하며, 이때 내부 상태는 초기화됩니다.
 
@@ -31,7 +35,7 @@ React context와 synthetic event는 `Host`가 속한 React 트리를 따릅니�
 
 하나의 포털에는 하나의 Host를 권장합니다. 여러 Host를 마운트하면 각각 별도의 콘텐츠를 렌더링하지만 활성 슬롯 상태는 공유합니다.
 
-ID별 저장소는 모듈 수명 동안 유지됩니다. `reset()`은 저장소를 삭제하지 않습니다. 매 렌더나 매 항목마다 무한히 새 ID를 만드는 패턴은 피하고, 애플리케이션 수준의 안정된 ID를 사용하세요. 많은 동적 인스턴스가 필요한 경우에는 명시적 수명 관리 API 설계가 먼저 필요합니다.
+ID별 저장소는 모듈 수명 동안 유지됩니다. `reset()`은 저장소를 삭제하지 않습니다. 매 렌더나 매 항목마다 무한히 새 ID를 만드는 패턴은 피하고, 애플리케이션 수준의 안정된 ID를 사용하세요. main 소스에는 안전한 [명시적 해제](./lifecycle-safety)를 추가했으며 npm 0.3.0에는 이 API가 없습니다.
 
 ## 접근성
 

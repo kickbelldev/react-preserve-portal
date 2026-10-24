@@ -5,6 +5,8 @@ description: Types, defaults, and behavior for createPortal, Host, Slot, and use
 
 # API reference
 
+This reference describes npm **0.3.0**. See [unreleased lifecycle fixes](./guide/lifecycle-safety) for the new APIs and stricter ownership checks on main.
+
 ## `createPortal({ id, slots })`
 
 ```tsx

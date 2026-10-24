@@ -49,3 +49,9 @@ jobs:
       - run: python -m pip install playwright==1.62.0
       - run: python -m playwright install --with-deps chromium
       - run: python scripts/lifecycle-smoke.py
+      - if: matrix.react == '19.2.3'
+        run: corepack pnpm exec nx run demo:build --skip-nx-cache --output-style=static
+        env:
+          NODE_ENV: production
+      - if: matrix.react == '19.2.3'
+        run: python scripts/demo-smoke.py
