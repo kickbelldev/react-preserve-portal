@@ -1,6 +1,7 @@
 import { InternalPortalHost } from '../components/InternalPortalHost'
 import { InternalPortalSlot } from '../components/InternalPortalSlot'
 import { usePortal } from '../model/usePortal'
+import { disposePortal } from '../model/store'
 
 import type {
   CreatePortalOptions,
@@ -41,5 +42,6 @@ export function createPortal<
     Host,
     Slot,
     usePortal: useTypedPortal,
+    dispose: () => disposePortal(id),
   } as const
 }

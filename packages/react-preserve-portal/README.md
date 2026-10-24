@@ -87,6 +87,12 @@ Host → React portal → stable container → currently selected Slot
 
 ## API
 
+The reference below describes npm 0.3.0. The source branch also contains
+[unreleased lifecycle fixes](https://kickbelldev.github.io/react-preserve-portal/en/guide/lifecycle-safety.html),
+including `Host mountWhen="connected"`, `Portal.dispose()`, empty-Slot validation,
+and protection for hidden Host containers. Those additions require a source build
+until the next npm release.
+
 ### `createPortal({ id, slots })`
 
 Returns `{ id, slots, Host, Slot, usePortal }` bound to that portal. Literal slot

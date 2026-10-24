@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { createRequire } from 'node:module'
-import React, { act, useState } from 'react'
+import React, { act, useLayoutEffect, useState } from 'react'
 import { renderToString } from 'react-dom/server'
 import { JSDOM } from 'jsdom'
 import * as esm from '@charley-kim/react-preserve-portal'
@@ -33,6 +33,7 @@ const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/' })
 globalThis.window = dom.window
 globalThis.document = dom.window.document
 globalThis.HTMLElement = dom.window.HTMLElement
+globalThis.MutationObserver = dom.window.MutationObserver
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 Object.defineProperty(globalThis, 'navigator', {
   configurable: true,
@@ -49,8 +50,12 @@ for (const [format, library] of [
     slots: ['main', 'mini'],
   })
   let actions
+  let connectedOnMount = false
   function Counter() {
     const [count, setCount] = useState(0)
+    useLayoutEffect(() => {
+      connectedOnMount = !!document.querySelector('button')?.isConnected
+    }, [])
     return h('button', { onClick: () => setCount(count + 1) }, count)
   }
   function App() {
@@ -58,16 +63,19 @@ for (const [format, library] of [
     return h(
       React.Fragment,
       null,
-      h(Portal.Host, null, h(Counter)),
+      h(Portal.Host, { mountWhen: 'connected' }, h(Counter)),
       h(Portal.Slot, { slotKey: 'main', id: 'main' }),
       h(Portal.Slot, { slotKey: 'mini', id: 'mini' }),
     )
   }
   const root = createRoot(document.getElementById('root'))
   await act(() => root.render(h(React.StrictMode, null, h(App))))
+  assert.equal(Portal.dispose(), false)
+  assert.equal(document.querySelector('button'), null)
   await act(() => actions.setSlotKey('main'))
   const button = document.querySelector('button')
   assert(button)
+  assert.equal(connectedOnMount, true)
   await act(() =>
     button.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true })),
   )
@@ -81,8 +89,10 @@ for (const [format, library] of [
   assert.equal(button.textContent, '1')
   await act(() => root.unmount())
   assert.equal(button.isConnected, false)
+  assert.equal(Portal.dispose(), true)
+  assert.throws(() => actions.setSlotKey('main'), /disposed/)
   console.log(
-    `PASS: ${format} SSR, StrictMode, DOM identity, React state, reset and unmount`,
+    `PASS: ${format} SSR, StrictMode, connected mount, DOM identity, React state, reset, unmount and disposal`,
   )
 }
 dom.window.close()

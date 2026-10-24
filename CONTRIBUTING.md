@@ -9,6 +9,7 @@ Node 22.12+ or Node 24 is recommended. Install with `--frozen-lockfile`.
 - `core/types.ts` defines the public API; existing `Host node` consumers remain supported.
 - `model/store.ts` owns per-ID snapshots, subscriptions, and stable actions. It has no React dependency.
 - `model/usePortal.ts` connects a store to React through `useSyncExternalStore`.
+- `model/useCommittedEffect.ts` handles final cleanup across React 18 Suspense and React 19 Activity.
 - `components/InternalPortalHost.tsx` owns one stable DOM container, hydration, and movement.
 - `components/InternalPortalSlot.tsx` registers destinations with an ownership-safe callback ref.
 
@@ -33,6 +34,15 @@ legacy API calls, server rendering, and hydration. Use the demo to verify routin
 and main/mini player transitions in a real browser. Browser-managed state can
 behave differently with `moveBefore` and the `appendChild` fallback; do not claim
 universal iframe or uninterrupted-media preservation.
+
+Run `python scripts/lifecycle-smoke.py` with Python Playwright and Chromium
+installed for real-browser connection, focus, iframe, hidden-deletion, and
+disposal regressions. `REACT_MODULES` can point to a separate `node_modules`
+containing React and React DOM. CI runs React 18.3.1 and 19.2.3 production builds,
+including native `moveBefore` and forced `appendChild` fallback paths. Activity
+is tested on React 19.2. Do not replace this matrix with jsdom alone: React 18
+skips insertion cleanup when deleting a suspended tree, while React 19 Activity
+disconnects passive effects when hiding it.
 
 Lint does not rewrite source. To autofix intentionally, pass `--fix=true` to the
 Nx lint task. In a container that cannot create Nx plugin sockets, use
