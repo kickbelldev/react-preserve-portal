@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { usePlayerStore } from '@/features/player/model/store'
 
 import { VideoPortal } from '@/portals/VideoPortal'
+import { CloseIcon, ReturnIcon } from '@/shared/ui/icons'
 
 interface MiniPortalContainerProps {
   children: ReactNode
@@ -17,7 +18,7 @@ export function MiniPortalContainer({ children }: MiniPortalContainerProps) {
   return (
     <div
       hidden={!isActive}
-      className="fixed right-4 bottom-4 z-50 w-80 overflow-hidden rounded-lg bg-black shadow-2xl"
+      className="fixed right-4 bottom-4 z-50 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-2xl bg-black text-zinc-100 shadow-2xl ring-1 shadow-black/60 ring-white/15"
     >
       {children}
       <button
@@ -26,14 +27,15 @@ export function MiniPortalContainer({ children }: MiniPortalContainerProps) {
           pause()
           reset()
         }}
-        className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70"
+        className="absolute top-2 right-2 grid h-7 w-7 place-items-center rounded-full bg-black/60 text-white backdrop-blur transition hover:bg-black/80 focus-visible:outline-2 focus-visible:outline-teal-300"
       >
-        ✕
+        <CloseIcon className="h-3.5 w-3.5" />
       </button>
       <Link
         to={returnPath ?? '/'}
-        className="block w-full bg-white/90 p-2 text-center text-sm text-black hover:bg-white"
+        className="flex items-center justify-center gap-1.5 border-t border-white/10 bg-zinc-900 py-2 text-sm text-zinc-300 transition hover:bg-zinc-800 hover:text-white"
       >
+        <ReturnIcon className="h-4 w-4" />
         돌아가기
       </Link>
     </div>

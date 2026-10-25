@@ -41,6 +41,10 @@ features:
   <h2>Move it while it plays.</h2>
   <p>Edit the note and increment the counter, then select Move to mini. The same player and values move together. Hide and show it to see which state stays.</p>
   <PortalPlayground />
-  <p>Playback can pause during fallback moves or hiding. See <a href="./guide/preservation.html">what survives a move</a> for the browser-dependent behavior.</p>
-  <p><a href="./guide/quick-start.html">Build your first portal →</a> · <a href="./guide/video-player.html">Add a mini player →</a> · <a href="./guide/routing.html">Keep it across routes →</a></p>
+  <p class="home-note">Playback can pause during fallback moves or hiding. See <a href="./guide/preservation.html">what survives a move</a> for the browser-dependent behavior.</p>
+  <nav class="home-next" aria-label="Next steps">
+    <a href="./guide/quick-start.html"><strong>Build your first portal</strong><span>Host, Slot and usePortal in five minutes</span></a>
+    <a href="./guide/video-player.html"><strong>Add a mini player</strong><span>Move a playing video, end to end</span></a>
+    <a href="./guide/routing.html"><strong>Keep it across routes</strong><span>Survive page navigation</span></a>
+  </nav>
 </div>

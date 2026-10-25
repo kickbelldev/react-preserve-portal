@@ -10,7 +10,7 @@ corepack pnpm exec nx run demo:dev
 
 ## Features
 
-- Video player with mini-player mode
+- Video player with mini-player mode, seekable progress bar, and poster
 - Slot switching between main and mini views
 - State preservation during DOM movement
 - Both destinations stay mounted in the shared layout, allowing connected moves

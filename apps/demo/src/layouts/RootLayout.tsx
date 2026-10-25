@@ -5,6 +5,14 @@ import { MainPlayer, usePlayerStore } from '@/features/player'
 
 import { VideoPortal } from '@/portals/VideoPortal'
 import { VIDEO_SOURCES } from '@/shared/constants/VIDEO_SOURCES'
+import { ExternalIcon } from '@/shared/ui/icons'
+
+const NAV_ITEMS = [
+  { to: '/', label: 'Home' },
+  { to: '/about', label: 'About' },
+  { to: '/video/1', label: 'Video 1' },
+  { to: '/video/2', label: 'Video 2' },
+]
 
 export function RootLayout() {
   const { pathname } = useLocation()
@@ -28,47 +36,53 @@ export function RootLayout() {
   }, [pathname, src, initVideo, setReturnPath, setSlotKey])
 
   return (
-    <>
-      <div className="min-h-screen bg-gray-900 text-white">
-        <nav className="flex gap-4 border-b border-gray-700 p-4">
-          <NavLink
-            to="/"
-            className={({ isActive }) =>
-              `hover:text-blue-400 ${isActive ? 'text-blue-400' : ''}`
-            }
-          >
-            Home
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-zinc-950/80 backdrop-blur">
+        <div className="mx-auto flex h-14 max-w-5xl items-center gap-6 px-4">
+          <NavLink to="/" className="flex items-center gap-2 font-semibold">
+            <img
+              src={`${import.meta.env.BASE_URL}logo.svg`}
+              alt=""
+              className="h-6 w-6"
+            />
+            <span className="hidden sm:inline">Preserve Portal</span>
+            <span className="rounded-full bg-teal-300/10 px-2 py-0.5 text-[11px] font-medium text-teal-300">
+              demo
+            </span>
           </NavLink>
-          <NavLink
-            to="/about"
-            className={({ isActive }) =>
-              `hover:text-blue-400 ${isActive ? 'text-blue-400' : ''}`
-            }
+          <nav className="flex gap-1 text-sm">
+            {NAV_ITEMS.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end
+                className={({ isActive }) =>
+                  `rounded-lg px-3 py-1.5 transition-colors ${
+                    isActive
+                      ? 'bg-white/10 text-white'
+                      : 'text-zinc-400 hover:bg-white/5 hover:text-zinc-100'
+                  }`
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+          <a
+            href="https://kickbelldev.github.io/react-preserve-portal/"
+            target="_blank"
+            rel="noreferrer"
+            className="ml-auto hidden items-center gap-1.5 text-sm text-zinc-400 hover:text-teal-300 md:flex"
           >
-            About
-          </NavLink>
-          <NavLink
-            to="/video/1"
-            className={({ isActive }) =>
-              `hover:text-blue-400 ${isActive ? 'text-blue-400' : ''}`
-            }
-          >
-            Video 1
-          </NavLink>
-          <NavLink
-            to="/video/2"
-            className={({ isActive }) =>
-              `hover:text-blue-400 ${isActive ? 'text-blue-400' : ''}`
-            }
-          >
-            Video 2
-          </NavLink>
-        </nav>
-        <main className="p-4">
-          <Outlet />
-          <MainPlayer hidden={!src} />
-        </main>
-      </div>
-    </>
+            문서
+            <ExternalIcon className="h-3.5 w-3.5" />
+          </a>
+        </div>
+      </header>
+      <main className="mx-auto max-w-5xl px-4 py-8">
+        <MainPlayer hidden={!src} />
+        <Outlet />
+      </main>
+    </div>
   )
 }

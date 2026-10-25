@@ -41,6 +41,10 @@ features:
   <h2>재생 중에 옮겨 보세요.</h2>
   <p>메모를 바꾸고 카운터를 올린 뒤 미니로 보내 보세요. 같은 플레이어와 입력값이 함께 이동합니다. 숨겼다가 다시 표시해도 값이 남는지 확인해 보세요.</p>
   <PortalPlayground />
-  <p>폴백 이동이나 숨김에서는 재생이 멈출 수 있습니다. 브라우저에 따라 달라지는 동작은 <a href="./guide/preservation.html">보존 범위</a>에서 확인하세요.</p>
-  <p><a href="./guide/quick-start.html">첫 포털 만들기 →</a> · <a href="./guide/video-player.html">미니플레이어에 적용하기 →</a> · <a href="./guide/routing.html">라우팅에 연결하기 →</a></p>
+  <p class="home-note">폴백 이동이나 숨김에서는 재생이 멈출 수 있습니다. 브라우저에 따라 달라지는 동작은 <a href="./guide/preservation.html">보존 범위</a>에서 확인하세요.</p>
+  <nav class="home-next" aria-label="다음 단계">
+    <a href="./guide/quick-start.html"><strong>첫 포털 만들기</strong><span>Host·Slot·usePortal로 5분 안에</span></a>
+    <a href="./guide/video-player.html"><strong>미니플레이어에 적용하기</strong><span>재생 중인 영상을 옮기는 실전 예제</span></a>
+    <a href="./guide/routing.html"><strong>라우팅에 연결하기</strong><span>페이지를 옮겨 다녀도 유지</span></a>
+  </nav>
 </div>
