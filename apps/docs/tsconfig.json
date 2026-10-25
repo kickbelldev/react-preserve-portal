@@ -10,5 +10,9 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": [".vitepress/config.mts", ".vitepress/theme/playground.tsx"]
+  "include": [
+    ".vitepress/config.mts",
+    ".vitepress/theme/playground.tsx",
+    ".vitepress/theme/not-found.ts"
+  ]
 }

@@ -115,15 +115,32 @@ with server as base, sync_playwright() as p:
     errors = []
     context.on('page', lambda page: page.on('pageerror', lambda error: errors.append(str(error))))
     page = context.new_page()
-    page.goto(base + '404.html', wait_until='networkidle')
+    not_found_response = page.goto(base + '404.html', wait_until='networkidle')
+    not_found_html = not_found_response.text()
     expect(page.get_by_role('heading', name='PAGE NOT FOUND', exact=True)).to_be_visible()
     expect(page.locator('meta[name="robots"]')).to_have_attribute('content', 'noindex, follow')
     expect(page.locator('link[rel="canonical"]')).to_have_count(0)
     page.get_by_role('link', name='go to home', exact=True).click()
     expect(page.get_by_test_id('preserved-input')).to_be_visible()
     check_metadata(page, '')
-    image = context.request.get(base + 'social-card.png')
+    for missing in ['__missing_page__.html', 'en/__missing__/page.html']:
+        url = base + missing
+        if '--local' in sys.argv:
+            # Model GitHub Pages serving the same 404.html at an unknown URL.
+            page.route(url, lambda route: route.fulfill(status=404, content_type='text/html', body=not_found_html))
+        response = page.goto(url, wait_until='networkidle')
+        assert response.status == 404
+        expect(page.get_by_role('heading', name='PAGE NOT FOUND', exact=True)).to_be_visible()
+        expect(page.locator('meta[name="robots"]')).to_have_count(1)
+        expect(page.locator('meta[name="robots"]')).to_have_attribute('content', 'noindex, follow')
+        expect(page.locator('link[rel="canonical"]')).to_have_count(0)
+        page.get_by_role('link', name='go to home', exact=True).click()
+        expect(page.get_by_test_id('preserved-input')).to_be_visible()
+        check_metadata(page, 'en/' if missing.startswith('en/') else '')
+    image_page = context.new_page()
+    image = image_page.goto(base + 'social-card.png')
     assert image.status == 200 and image.headers['content-type'].startswith('image/png')
+    image_page.close()
     check_preservation(page)
 
     page.goto(base + 'guide/introduction.html', wait_until='networkidle')
