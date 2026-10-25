@@ -63,3 +63,18 @@ def preview(project, prefix=''):
                 except subprocess.TimeoutExpired:
                     os.killpg(process.pid, signal.SIGKILL)
                     process.wait()
+
+
+def wait_for_video(page, selector='video'):
+    page.wait_for_function("""selector => {
+      const video = document.querySelector(selector);
+      return video && (video.readyState >= 2 || video.error);
+    }""", arg=selector)
+    details = page.locator(selector).evaluate("""video => ({
+      src: video.currentSrc, readyState: video.readyState,
+      h264: video.canPlayType('video/mp4; codecs="avc1.4D401F"'),
+      vp9: video.canPlayType('video/webm; codecs="vp9"'),
+      error: video.error ? {code: video.error.code, message: video.error.message} : null
+    })""")
+    assert details['error'] is None, details
+    print(f'Media loaded: {details}')

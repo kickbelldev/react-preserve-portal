@@ -5,7 +5,7 @@ Python Playwright and the selected PORTAL_BROWSER installed.
 """
 import os
 from playwright.sync_api import expect, sync_playwright
-from browser_support import launch_browser, preview
+from browser_support import launch_browser, preview, wait_for_video
 
 with preview('demo') as base:
     with sync_playwright() as p:
@@ -15,7 +15,13 @@ with preview('demo') as base:
             page = browser.new_page()
             page.on('pageerror', lambda error: errors.append(str(error)))
             if fallback:
-                page.add_init_script('Element.prototype.moveBefore = undefined')
+                page.add_init_script('''
+        Element.prototype.moveBefore = undefined;
+        const canPlay = HTMLMediaElement.prototype.canPlayType;
+        HTMLMediaElement.prototype.canPlayType = function(type) {
+          return type.startsWith('video/mp4') ? '' : canPlay.call(this, type);
+        };
+    ''')
             page.goto(base, wait_until='networkidle')
             expect(page.get_by_label('미니플레이어 닫기')).not_to_be_visible()
             page.get_by_role('link', name='Video 1', exact=True).click()
@@ -35,7 +41,7 @@ with preview('demo') as base:
                 return append.call(this, node);
               };
             }''')
-            page.wait_for_function('video.readyState >= 2')
+            wait_for_video(page)
             page.get_by_role('button', name='재생', exact=True).click()
             page.wait_for_function('!video.paused && video.currentTime > 0.2')
             expect(page.get_by_role('button', name='일시정지', exact=True)).to_be_visible()

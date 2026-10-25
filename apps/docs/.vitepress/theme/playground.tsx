@@ -9,7 +9,7 @@ import {
 } from 'react'
 import { createRoot } from 'react-dom/client'
 import { flushSync } from 'react-dom'
-import media from '../../../../assets/media/portal-reel.mp4?url'
+import { exampleVideoSource } from '../../../../assets/media/source'
 import poster from '../../../../assets/media/portal-reel.webp?url'
 import { createPortal } from '@charley-kim/react-preserve-portal'
 
@@ -109,6 +109,7 @@ function PreservedCard({ ko, autoPlay }: { ko: boolean; autoPlay: boolean }) {
   const [count, setCount] = useState(0)
   const [lastSlot, setLastSlot] = useState(slotKey)
   const [moves, setMoves] = useState(0)
+  const [media] = useState(exampleVideoSource)
   const [playing, setPlaying] = useState(false)
   const [playbackError, setPlaybackError] = useState(false)
   const request = useRef({ id: 0 })

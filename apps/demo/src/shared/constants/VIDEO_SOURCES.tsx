@@ -1,4 +1,6 @@
-import reel from '../../../../../assets/media/portal-reel.mp4?url'
+import { exampleVideoSource } from '../../../../../assets/media/source'
+
+const reel = exampleVideoSource()
 
 // Both routes use the repository's own clip. A media fragment gives the second
 // route a distinct source so switching videos still exercises source replacement.

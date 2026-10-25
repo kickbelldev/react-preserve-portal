@@ -9,7 +9,7 @@ from contextlib import nullcontext
 import os
 import sys
 from playwright.sync_api import expect, sync_playwright
-from browser_support import launch_browser, preview
+from browser_support import launch_browser, preview, wait_for_video
 
 base = (sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] != '--local' else
         'http://127.0.0.1:4173/react-preserve-portal/').rstrip('/') + '/'
@@ -17,11 +17,17 @@ base = (sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] != '--local' else
 
 def check_preservation(page, fallback=False):
     if fallback:
-        page.add_init_script("Element.prototype.moveBefore = undefined")
+        page.add_init_script('''
+        Element.prototype.moveBefore = undefined;
+        const canPlay = HTMLMediaElement.prototype.canPlayType;
+        HTMLMediaElement.prototype.canPlayType = function(type) {
+          return type.startsWith('video/mp4') ? '' : canPlay.call(this, type);
+        };
+    ''')
     page.goto(base + 'playground.html', wait_until='networkidle')
     note = page.get_by_test_id('preserved-input')
     expect(note).to_be_visible()
-    page.wait_for_function('document.querySelector("video").readyState >= 2')
+    wait_for_video(page)
     page.evaluate('''() => {
       window.originalVideo = document.querySelector('video');
       originalVideo.pause();
@@ -71,8 +77,15 @@ def check_preservation(page, fallback=False):
     page.wait_for_function('originalVideo.paused')
     page.emulate_media(reduced_motion='no-preference')
     toggle = page.get_by_role('checkbox', name='View Transition')
-    if toggle.is_enabled():
-        toggle.check()
+    if page.evaluate("typeof document.startViewTransition === 'function'"):
+        expect(toggle).to_be_enabled()
+        page.locator('.demo-switch').click()
+        expect(toggle).to_be_checked()
+        toggle.focus()
+        toggle.press('Space')
+        expect(toggle).not_to_be_checked()
+        toggle.press('Space')
+        expect(toggle).to_be_checked()
         page.get_by_test_id('to-mini').click()
         expect(page.get_by_test_id('mini-slot').locator('input')).to_have_value('Persistent note / 유지되는 메모')
         page.get_by_test_id('to-main').click()
