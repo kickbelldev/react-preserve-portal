@@ -18,8 +18,7 @@ export function VideoElement() {
       ref={setVideoRef}
       src={src ?? undefined}
       poster={VIDEO_POSTER}
-      // The reel is a seamless loop. Looping also avoids `ended`, after which
-      // Linux WebKit (CI) did not resume within seconds when play() was called.
+      // The reel is a seamless loop.
       loop
       playsInline
       className="aspect-video w-full object-contain"
