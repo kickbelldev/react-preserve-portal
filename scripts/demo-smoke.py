@@ -54,9 +54,7 @@ with preview('demo') as base:
             else:
                 assert page.evaluate('moves') == ['appendChild']
             # Native changes must update controls even without a button click.
-            # Rewind first: on slow runners the 16s clip can be near its end, so
-            # play() would reach `ended` before the playing label is observed.
-            page.evaluate('video.currentTime = 1; video.pause()')
+            page.evaluate('video.pause()')
             expect(page.get_by_role('button', name='재생', exact=True)).to_be_visible()
             page.evaluate('video.play()')
             expect(page.get_by_role('button', name='일시정지', exact=True)).to_be_visible()
