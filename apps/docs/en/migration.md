@@ -1,9 +1,23 @@
 ---
-title: Migrating to 0.3
-description: Compatibility and behavior changes when upgrading from 0.2.x to 0.3.0.
+title: Migrating to 0.4
+description: Compatibility changes for 0.4.0, with earlier 0.2.x migration notes.
 ---
 
-# Migrating to 0.3
+# Migrating to 0.4
+
+## From 0.3.x to 0.4.0
+
+Existing factory calls, the `node` prop, and hook actions remain supported. This pre-1.0 minor release tightens several unsafe usage patterns:
+
+- Keep Slots empty. Move `children` and HTML placeholders beside them; `children` and `dangerouslySetInnerHTML` now fail type checking and throw at runtime.
+- Treat `targets` as `ReadonlyMap`; use registration actions instead of modifying snapshots.
+- Keep destinations in Host's document and outside its own container. Cross-document and cyclic moves are rejected before mutation.
+
+The default mount remains immediate. Choose `mountWhen="connected"` when initial measurements or autofocus require attachment. Host containers now survive outer Suspense/Activity hiding, including final cleanup on React 18. Explicit hide/reset and removed Slots still detach content.
+
+`Player.dispose()` optionally releases an unused ID after all React owners and manual registrations are gone. It refuses while owners remain, including hidden ones. Retained actions throw after successful disposal; fresh mounts use a new store. See [the lifecycle guide](./guide/lifecycle-safety) and [API reference](./api).
+
+## From 0.2.x
 
 Existing factories, slot keys, `node`, and hook methods remain available. Review the following behavior and type requirements.
 

@@ -23,7 +23,7 @@ description: Understand React state, DOM identity, browser-managed state, and Ho
 
 ## Initial connection and hidden boundaries
 
-In npm 0.3.0, children can first mount in a detached container; initial measurements can be zero and `autoFocus` can fail. Also, an outer Suspense/Activity boundary can trigger Host layout cleanup and detach the container even without a final unmount. Keeping Host outside those boundaries or placing a boundary inside its children avoids that specific cleanup path. [Unreleased lifecycle fixes](./lifecycle-safety) address both cases with connected mounting and final-deletion cleanup.
+The default `mountWhen="immediate"` can first mount children in a detached container; initial measurements can be zero and `autoFocus` can fail. In 0.4.0, choose `mountWhen="connected"` to wait for the first document connection. Outer Suspense/Activity boundaries now keep Host containers connected until final deletion; React still controls visibility and Effects. Hiding/removing a Slot itself can unregister the destination and detach content. See [lifecycle and ownership](./lifecycle-safety) for these distinct lifetimes.
 
 ## React tree versus DOM tree
 
@@ -35,7 +35,7 @@ Within one React root, context and synthetic events follow the tree containing `
 
 Prefer one Host per portal. Multiple Hosts render separate content while sharing the active slot state.
 
-Stores remain registered by ID for the lifetime of the module. `reset()` does not delete a store. Avoid generating unlimited IDs per render or per item. Use stable application-level IDs. Main source adds guarded [explicit disposal](./lifecycle-safety); this API is not in npm 0.3.0.
+Stores remain registered by ID for the lifetime of the module. `reset()` does not delete a store. Avoid generating unlimited IDs per render or per item. Use stable application-level IDs. Use [explicit disposal](./lifecycle-safety) after all owners and manual destinations have been released; it has been available since 0.4.0.
 
 ## Accessibility
 
