@@ -282,6 +282,7 @@
 
 /* Preserved card */
 .demo-editor {
+  transform-origin: top left;
   overflow: hidden;
   border: 1px solid var(--vp-c-divider);
   border-radius: 12px;
@@ -345,6 +346,12 @@
   font-size: 12px;
   margin-bottom: 14px;
   color: var(--vp-c-text-2);
+}
+.demo-card-top {
+  flex-wrap: wrap;
+}
+.demo-card-label {
+  white-space: nowrap;
 }
 .demo-chip {
   margin-left: auto;
@@ -452,20 +459,25 @@
 }
 
 /* Status */
+.demo-switches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
 .demo-status {
   margin-top: 16px;
   flex-wrap: wrap;
   font: 12px var(--vp-font-family-mono);
   color: var(--vp-c-text-2);
 }
-.demo-switch {
+:is(.demo-switch, .demo-flip-switch) {
   position: relative;
   display: inline-flex;
   gap: 8px;
   align-items: center;
   cursor: pointer;
 }
-.demo-switch input {
+:is(.demo-switch, .demo-flip-switch) input {
   position: absolute;
   opacity: 0;
   width: 1px;
@@ -491,17 +503,17 @@
   box-shadow: 0 1px 2px #0003;
   transition: transform 0.2s;
 }
-.demo-switch input:checked + .demo-switch-track {
+:is(.demo-switch, .demo-flip-switch) input:checked + .demo-switch-track {
   background: var(--vp-c-brand-1);
 }
-.demo-switch input:checked + .demo-switch-track::after {
+:is(.demo-switch, .demo-flip-switch) input:checked + .demo-switch-track::after {
   transform: translateX(12px);
 }
-.demo-switch input:focus-visible + .demo-switch-track {
+:is(.demo-switch, .demo-flip-switch) input:focus-visible + .demo-switch-track {
   outline: 2px solid var(--vp-c-brand-1);
   outline-offset: 2px;
 }
-.demo-switch:has(input:disabled) {
+:is(.demo-switch, .demo-flip-switch):has(input:disabled) {
   opacity: 0.5;
   cursor: not-allowed;
 }

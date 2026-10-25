@@ -209,7 +209,9 @@ function PreservedCard({ ko, autoPlay }: { ko: boolean; autoPlay: boolean }) {
         )}
         <div className="demo-card-top">
           <span className="demo-dot" />
-          {ko ? '하나의 React 인스턴스' : 'One React instance'}
+          <span className="demo-card-label">
+            {ko ? '상태와 DOM이 그대로예요' : 'State and DOM are kept'}
+          </span>
           <span className="demo-chip">
             {ko
               ? `이동 ${moves}회`
@@ -248,7 +250,9 @@ function PreservedCard({ ko, autoPlay }: { ko: boolean; autoPlay: boolean }) {
 
 function Playground({ ko }: { ko: boolean }) {
   const { slotKey, setSlotKey, reset } = Demo.usePortal()
-  const [animate, setAnimate] = useState(false)
+  // FLIP is the default; View Transition is the browser-native alternative.
+  const [animation, setAnimation] = useState<'flip' | 'view' | 'none'>('flip')
+  const section = useRef<HTMLElement>(null)
   const nativeMove =
     'moveBefore' in Element.prototype &&
     typeof Element.prototype.moveBefore === 'function'
@@ -264,13 +268,51 @@ function Playground({ ko }: { ko: boolean }) {
     return reset
   }, [setSlotKey, reset])
 
+  // FLIP: measure the card, move it, then animate the same element from its
+  // old box to the new one. This works because the portal keeps the element.
+  function flipMove(key: 'main' | 'mini' | null) {
+    const findCard = () =>
+      section.current?.querySelector<HTMLElement>('.demo-editor') ?? null
+    const before = findCard()
+    const first = before?.isConnected ? before.getBoundingClientRect() : null
+    flushSync(() => setSlotKey(key))
+    const card = findCard()
+    if (!card?.isConnected) return
+    const last = card.getBoundingClientRect()
+    if (first) {
+      if (first.left === last.left && first.top === last.top) return
+      card.animate(
+        [
+          {
+            transform: `translate(${first.left - last.left}px, ${first.top - last.top}px) scale(${first.width / last.width})`,
+          },
+          { transform: 'none' },
+        ],
+        { duration: 450, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' },
+      )
+    } else {
+      // Showing hidden content: there is no previous box, so fade it in.
+      card.animate(
+        [
+          { opacity: 0, transform: 'scale(0.96)' },
+          { opacity: 1, transform: 'none' },
+        ],
+        { duration: 250, easing: 'ease-out' },
+      )
+    }
+  }
+
   function move(key: 'main' | 'mini' | null) {
-    if (animate && transitions && !reducedMotion) {
+    if (reducedMotion) {
+      setSlotKey(key)
+    } else if (animation === 'view' && transitions) {
       // Commit React's update inside the browser's snapshot callback.
       const transition = document.startViewTransition(() =>
         flushSync(() => setSlotKey(key)),
       )
       void transition.ready.catch(() => {})
+    } else if (animation === 'flip') {
+      flipMove(key)
     } else {
       setSlotKey(key)
     }
@@ -280,6 +322,7 @@ function Playground({ ko }: { ko: boolean }) {
 
   return (
     <section
+      ref={section}
       aria-label={ko ? '포털 상태 보존 예제' : 'Portal preservation example'}
     >
       <div className="demo-toolbar">
@@ -395,16 +438,32 @@ function Playground({ ko }: { ko: boolean }) {
         <span role="status" aria-live="polite">
           slotKey: <code>{slotKey === null ? 'null' : `'${slotKey}'`}</code>
         </span>
-        <label className="demo-switch">
-          <input
-            type="checkbox"
-            checked={animate}
-            disabled={!transitions || reducedMotion}
-            onChange={(event) => setAnimate(event.target.checked)}
-          />
-          <span className="demo-switch-track" aria-hidden="true" />
-          View Transition
-        </label>
+        <div className="demo-switches">
+          <label className="demo-flip-switch">
+            <input
+              type="checkbox"
+              checked={animation === 'flip'}
+              disabled={reducedMotion}
+              onChange={(event) =>
+                setAnimation(event.target.checked ? 'flip' : 'none')
+              }
+            />
+            <span className="demo-switch-track" aria-hidden="true" />
+            {ko ? '이동 애니메이션 (FLIP)' : 'Move animation (FLIP)'}
+          </label>
+          <label className="demo-switch">
+            <input
+              type="checkbox"
+              checked={animation === 'view'}
+              disabled={!transitions || reducedMotion}
+              onChange={(event) =>
+                setAnimation(event.target.checked ? 'view' : 'none')
+              }
+            />
+            <span className="demo-switch-track" aria-hidden="true" />
+            View Transition
+          </label>
+        </div>
       </div>
       <p className="demo-hint">
         {ko
