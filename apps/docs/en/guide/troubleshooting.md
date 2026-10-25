@@ -44,7 +44,7 @@ Since 0.3.0, mounted Slots stay registered. Call `setSlotKey('main')` to show th
 
 ## A target registration gets replaced
 
-Check for multiple destinations using the same portal ID and slot key. The last registration wins. For external destinations, use [the returned cleanup function](../api#register-an-external-dom-destination). Mutating the `targets` Map directly bypasses notifications and cleanup.
+Check for multiple destinations using the same portal ID and slot key. The last registration wins, and when it goes away the content returns to the previous one still registered. Check the console for development warnings too. For external destinations, use [the returned cleanup function](../api#register-an-external-dom-destination). Mutating the `targets` Map directly bypasses notifications and cleanup.
 
 ## Playback controls disagree with the video
 

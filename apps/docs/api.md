@@ -64,7 +64,9 @@ Slot은 마운트 시 등록되고 언마운트 시 해제되며 숨김 경계�
 
 Slot은 사용자 `ref`를 전달하는 API를 제공하지 않습니다. 목적지 요소를 직접 관리해야 한다면 아래의 [외부 DOM 등록](#external-targets)을 사용하세요.
 
-같은 키의 Slot이 겹치면 **마지막 등록이 우선**합니다. 오래된 Slot의 정리는 새 Slot을 해제하지 않습니다. 새 Slot을 제거해도 이전 등록을 자동 복원하지는 않습니다.
+같은 키의 Slot이 겹치면 **마지막 등록이 우선**합니다. 오래된 Slot의 정리는 새 Slot을 해제하지 않습니다. 새 Slot이 먼저 제거되면 아직 등록된 이전 Slot으로 콘텐츠가 돌아갑니다. exit 애니메이션처럼 두 Slot이 잠시 겹쳐도 콘텐츠가 사라지지 않습니다.
+
+개발 빌드에서는 한 포털 ID에 Host가 둘 이상 마운트될 때, 선언하지 않은 슬롯 키를 쓸 때(`setSlotKey`, `Slot`, `registerTarget`), 같은 ID를 다른 `slots`로 만들 때, Host의 `as`가 마운트 후 바뀔 때 한 번씩 경고합니다. 프로덕션 빌드에서는 제거됩니다.
 
 ## `usePortal()`
 
@@ -89,7 +91,7 @@ const {
 | `setReturnPath(path)`          | `(string \| null) => void`          | 메타데이터만 변경하며 URL은 바꾸지 않습니다.                                 |
 | `targets`                      | `ReadonlyMap<SlotKey, HTMLElement>` | 등록된 목적지 스냅샷. 직접 수정하지 마세요.                                  |
 | `registerTarget(key, element)` | `() => void` 반환                   | 수동 목적지를 등록하고 안전한 정리 함수를 반환합니다.                        |
-| `unregisterTarget(key)`        | `(key: SlotKey) => void`                     | 해당 키의 현재 등록을 해제합니다.                                            |
+| `unregisterTarget(key)`        | `(key: SlotKey) => void`                     | 해당 키의 등록을 모두 해제합니다.                                            |
 | `reset()`                      | `() => void`                        | 숨기고 `returnPath`를 비웁니다. 목적지 등록과 콘텐츠 내부 상태는 유지합니다. |
 
 `slotKey`는 선택한 이름이며 실제 연결·가시성을 뜻하지 않습니다. 목적지가 아직 없거나 숨겨져 있을 수 있습니다. `setSlotKey(null)`은 선택만 비우고, `reset()`은 `returnPath`도 비웁니다. 둘 다 콘텐츠의 React 상태를 초기화하지 않습니다.

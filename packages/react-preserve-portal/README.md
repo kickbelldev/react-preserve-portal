@@ -108,7 +108,8 @@ const Panel = createPortal({ id: 'panel', slots: ['left', 'right'] })
 Use distinct IDs for independent portals. Factories with the same ID share
 state within the same loaded copy of this library. IDs should be stable,
 application-level identifiers, not values generated on every render. One mounted
-`Host` per portal is the usual arrangement; multiple hosts share the active slot.
+`Host` per portal is the usual arrangement; multiple hosts share the active slot,
+and development builds warn when more than one is mounted.
 
 ### `Host`
 
@@ -143,8 +144,16 @@ same document as Host and cannot be the portal container or its descendants.
 
 Prefer one mounted destination per key. If destinations overlap during a
 transition, the last registration wins. Cleaning up an older destination does
-not remove the newer one. Removing the newest destination does not restore an
-older registration automatically.
+not remove the newer one, and removing the newest destination returns the
+content to the most recent destination that is still registered.
+
+### Development warnings
+
+Outside production builds (`process.env.NODE_ENV !== 'production'`), the library
+warns once for: more than one mounted `Host` per portal ID, slot keys that the
+portal does not declare (from `setSlotKey`, `Slot`, or `registerTarget`), the same
+ID created with different `slots`, and a `Host` whose `as` tag changes after
+mount. Production bundles strip these checks.
 
 ### `usePortal()`
 
@@ -156,7 +165,7 @@ older registration automatically.
 | `targets`                            | `ReadonlyMap` snapshot of registered destinations; do not mutate             |
 | `reset()`                            | Hide content and clear `returnPath`, keeping mounted destinations registered |
 | `registerTarget(key, element)`       | Register a manual DOM destination; returns a cleanup function                |
-| `unregisterTarget(key)`              | Remove a manual registration                                                 |
+| `unregisterTarget(key)`              | Remove every registration for that key                                       |
 
 Action references remain stable for a given ID. Updating one portal does not
 notify subscribers of unrelated portals. Manual registrations should use the

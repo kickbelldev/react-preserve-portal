@@ -64,7 +64,9 @@ Slots register on mount and unregister on unmount; hidden boundaries can also de
 
 Slot does not expose a user `ref` prop. If you need to own the destination element, use [external DOM registration](#register-an-external-dom-destination) below.
 
-If destinations with the same key overlap, **the last registration wins**. Cleaning up an older Slot does not unregister its replacement. Removing the latest destination does not automatically restore an older registration.
+If destinations with the same key overlap, **the last registration wins**. Cleaning up an older Slot does not unregister its replacement. If the latest destination is removed first, the content returns to the most recent destination that is still registered, so overlapping Slots during an exit animation do not drop the content.
+
+Development builds warn once when more than one Host is mounted for a portal ID, when a slot key is not declared (`setSlotKey`, `Slot`, `registerTarget`), when one ID is created with different `slots`, and when a Host's `as` changes after mount. Production builds strip these checks.
 
 ## `usePortal()`
 
@@ -89,7 +91,7 @@ const {
 | `setReturnPath(path)`          | `(string \| null) => void`          | Set metadata without changing the URL.                                               |
 | `targets`                      | `ReadonlyMap<SlotKey, HTMLElement>` | Snapshot of registered destinations. Do not mutate it.                               |
 | `registerTarget(key, element)` | Returns `() => void`                | Register a manual destination and return an ownership-safe cleanup.                  |
-| `unregisterTarget(key)`        | `(key: SlotKey) => void`                     | Remove the current registration for a key.                                           |
+| `unregisterTarget(key)`        | `(key: SlotKey) => void`                     | Remove every registration for a key.                                                  |
 | `reset()`                      | `() => void`                        | Hide content and clear `returnPath`. Keep destinations and content's internal state. |
 
 `slotKey` is a selection, not a connection or visibility signal: its target can be missing or hidden. `setSlotKey(null)` clears the selection; `reset()` also clears `returnPath`. Neither resets the content's React state.

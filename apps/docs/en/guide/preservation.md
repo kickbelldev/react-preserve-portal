@@ -35,7 +35,7 @@ Within one React root, context and synthetic events follow the tree containing `
 
 ## Lifetime and IDs
 
-Prefer one Host per portal. Multiple Hosts render separate content while sharing the active slot state.
+Prefer one Host per portal. Multiple Hosts render separate content while sharing the active slot state; development builds warn when this happens.
 
 Stores remain registered by ID for the lifetime of the module. `reset()` does not delete a store. Avoid generating unlimited IDs per render or per item. Use stable application-level IDs. Use [explicit disposal](./lifecycle-safety) after all owners and manual destinations have been released.
 
