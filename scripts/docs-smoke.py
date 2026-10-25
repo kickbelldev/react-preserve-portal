@@ -15,6 +15,22 @@ base = (sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] != '--local' else
         'http://127.0.0.1:4173/react-preserve-portal/').rstrip('/') + '/'
 
 
+def check_metadata(page, route):
+    canonical = 'https://kickbelldev.github.io/react-preserve-portal/' + route
+    expect(page.locator('link[rel="canonical"]')).to_have_count(1)
+    expect(page.locator('link[rel="canonical"]')).to_have_attribute('href', canonical)
+    expect(page.locator('meta[property="og:url"]')).to_have_count(1)
+    expect(page.locator('meta[property="og:url"]')).to_have_attribute('content', canonical)
+    expect(page.locator('meta[property="og:title"]')).to_have_count(1)
+    title = page.locator('meta[property="og:title"]').get_attribute('content')
+    assert page.title() == title or page.title().startswith(title + ' | ')
+    expect(page.locator('meta[name="twitter:title"]')).to_have_attribute('content', title)
+    expect(page.locator('meta[property="og:description"]')).to_have_attribute('content', page.locator('meta[name="description"]').get_attribute('content'))
+    expect(page.locator('meta[property="og:locale"]')).to_have_attribute('content', 'en_US' if route.startswith('en/') else 'ko_KR')
+    expect(page.locator('link[rel="alternate"][hreflang]')).to_have_count(2)
+    expect(page.locator('meta[name="robots"]')).to_have_count(0)
+
+
 def check_preservation(page, fallback=False):
     if fallback:
         page.add_init_script('''
@@ -99,9 +115,19 @@ with server as base, sync_playwright() as p:
     errors = []
     context.on('page', lambda page: page.on('pageerror', lambda error: errors.append(str(error))))
     page = context.new_page()
+    page.goto(base + '404.html', wait_until='networkidle')
+    expect(page.get_by_role('heading', name='PAGE NOT FOUND', exact=True)).to_be_visible()
+    expect(page.locator('meta[name="robots"]')).to_have_attribute('content', 'noindex, follow')
+    expect(page.locator('link[rel="canonical"]')).to_have_count(0)
+    page.get_by_role('link', name='go to home', exact=True).click()
+    expect(page.get_by_test_id('preserved-input')).to_be_visible()
+    check_metadata(page, '')
+    image = context.request.get(base + 'social-card.png')
+    assert image.status == 200 and image.headers['content-type'].startswith('image/png')
     check_preservation(page)
 
     page.goto(base + 'guide/introduction.html', wait_until='networkidle')
+    check_metadata(page, 'guide/introduction.html')
     page.locator('.VPNavBarSearch button').click()
     page.locator('#localsearch-input').fill('보존')
     expect(page.locator('.VPLocalSearchBox')).to_contain_text('보존 원리와 수명')
@@ -110,6 +136,7 @@ with server as base, sync_playwright() as p:
     page.locator('.VPNavBarTranslations').get_by_role('link', name='English').click()
     expect(page).to_have_url(base + 'en/guide/introduction.html')
     expect(page.locator('h1')).to_have_text('Introduction')
+    check_metadata(page, 'en/guide/introduction.html')
     page.locator('.VPNavBarSearch button').click()
     page.locator('#localsearch-input').fill('preservation')
     expect(page.locator('.VPLocalSearchBox')).to_contain_text('How preservation works')
@@ -118,6 +145,7 @@ with server as base, sync_playwright() as p:
     expect(page.locator('html')).to_have_class('dark')
     page.get_by_role('link', name='Playground', exact=True).first.click()
     expect(page.get_by_test_id('preserved-input')).to_be_visible()
+    check_metadata(page, 'en/playground.html')
     expect(page.get_by_test_id('increment')).to_contain_text('0')
     page.get_by_test_id('to-mini').click()
     expect(page.get_by_test_id('mini-slot').locator('input')).to_be_visible()
@@ -130,6 +158,7 @@ with server as base, sync_playwright() as p:
     mobile.get_by_role('button', name='mobile navigation').click()
     mobile.locator('.VPNavScreen').get_by_role('link', name='API', exact=True).click()
     expect(mobile.locator('h1')).to_have_text('API 레퍼런스')
+    check_metadata(mobile, 'api.html')
     mobile.emulate_media(reduced_motion='reduce')
     mobile.goto(base + 'playground.html', wait_until='networkidle')
     expect(mobile.get_by_role('checkbox', name='View Transition')).to_be_disabled()
@@ -139,4 +168,4 @@ with server as base, sync_playwright() as p:
     check_preservation(fallback, fallback=True)
     assert errors == [], errors
     browser.close()
-    print(f'PASS: docs {os.environ.get("PORTAL_BROWSER", "chromium")}: real video, play failure/retry, dynamic reduced motion, native/fallback DOM identity, state, hide/reset, native focus/selection, View Transition, Korean/English search, locale navigation, dark mode, mobile navigation, reduced motion; no page errors.')
+    print(f'PASS: docs {os.environ.get("PORTAL_BROWSER", "chromium")}: real video, play failure/retry, dynamic reduced motion, native/fallback DOM identity, state, hide/reset, native focus/selection, View Transition, Korean/English search, locale navigation, dark mode, mobile navigation, reduced motion, metadata on client navigation, 404 recovery, share image; no page errors.')

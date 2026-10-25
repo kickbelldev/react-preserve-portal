@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'apps/docs/**'
+      - 'scripts/check-docs-output.py'
       - 'assets/media/**'
       - 'packages/react-preserve-portal/**'
       - 'package.json'
@@ -33,9 +34,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - run: corepack enable
       - run: corepack pnpm install --frozen-lockfile
-      - run: corepack pnpm exec nx run-many --projects=docs --targets=build,typecheck,lint --output-style=static
+      - run: corepack pnpm exec nx run-many --projects=docs --targets=build,typecheck,lint,check-output --output-style=static
         env:
           NODE_ENV: production
       - uses: actions/configure-pages@v5

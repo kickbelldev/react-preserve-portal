@@ -85,6 +85,12 @@ Set `PORTAL_BROWSER` as above; pass a site base URL to check a deployment.
 Set `CHROMIUM_PATH` if the browser is not at `/usr/bin/chromium`. Restart the preview
 after rebuilding so its static-file cache matches the new assets.
 
+`corepack pnpm exec nx run docs:check-output` uses Python 3's standard library to
+check built metadata, translations, sitemap, share image and internal links before
+deployment. To regenerate the share PNG from `.vitepress/social-card.html` and the
+existing illustration, run `python scripts/render-docs-social-card.py` with the
+same Playwright setup; the generated PNG is committed and needs no runtime service.
+
 GitHub Pages uses **GitHub Actions** as its build source. The Documentation
 workflow builds and uploads the static artifact, then deploys from `main` using
 the `github-pages` environment. It can also be dispatched manually from `main`.
