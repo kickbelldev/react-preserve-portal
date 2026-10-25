@@ -6,7 +6,7 @@ export function MiniPlayer() {
   return (
     <MiniPortalContainer>
       <MiniPortal />
-      <VideoControls />
+      <VideoControls compact />
     </MiniPortalContainer>
   )
 }

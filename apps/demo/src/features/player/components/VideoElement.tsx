@@ -1,3 +1,5 @@
+import { VIDEO_POSTER } from '@/shared/constants/VIDEO_META'
+
 import { usePlayerStore } from '../model/store'
 
 /**
@@ -15,6 +17,7 @@ export function VideoElement() {
     <video
       ref={setVideoRef}
       src={src ?? undefined}
+      poster={VIDEO_POSTER}
       playsInline
       className="aspect-video w-full object-contain"
       onPlay={(e) => syncPlayback(e.currentTarget)}

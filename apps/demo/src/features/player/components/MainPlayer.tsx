@@ -6,7 +6,7 @@ export function MainPlayer({ hidden }: { hidden: boolean }) {
   return (
     <div
       hidden={hidden}
-      className="mt-4 max-w-4xl overflow-hidden rounded-lg bg-black"
+      className="overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 shadow-black/40 ring-white/10"
     >
       <MainPortal />
       <VideoControls />
