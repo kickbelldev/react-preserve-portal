@@ -1,4 +1,4 @@
-## 0.4.0 (2026-10-24)
+## 0.4.0 (2026-10-25)
 
 - Reject Slot children/HTML that could overwrite the portal container.
 - Give each target registration an identity, including repeated registrations of the same element.
