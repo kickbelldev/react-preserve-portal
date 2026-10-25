@@ -1,77 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 380" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 320" fill="none">
   <style>
-    .player { transform-origin: 0 0; animation: travel 8s cubic-bezier(.65,0,.35,1) infinite; }
-    .progress { transform-box: fill-box; transform-origin: 0 50%; animation: play 16s linear infinite; }
-    .ghost-main { animation: ghost-main 8s cubic-bezier(.65,0,.35,1) infinite; }
-    .ghost-mini { animation: ghost-mini 8s cubic-bezier(.65,0,.35,1) infinite; }
-    .trail { stroke-dasharray: 4 7; animation: dash 1s linear infinite; }
-    @keyframes travel {
-      0%, 38% { transform: translate(44px, 92px) scale(1); }
-      50%, 88% { transform: translate(248px, 246px) scale(.6); }
-      100% { transform: translate(44px, 92px) scale(1); }
+    .tile { transform-origin: 0 0; animation: move 6s cubic-bezier(.65,0,.35,1) infinite; }
+    @keyframes move {
+      0%, 35% { transform: translate(24px, 40px) scale(1); }
+      50%, 85% { transform: translate(236px, 196px) scale(.54); }
+      100% { transform: translate(24px, 40px) scale(1); }
     }
-    @keyframes play { from { transform: scaleX(.04); } to { transform: scaleX(1); } }
-    @keyframes ghost-main { 0%, 38% { opacity: 0; } 50%, 88% { opacity: 1; } 100% { opacity: 0; } }
-    @keyframes ghost-mini { 0%, 38% { opacity: 1; } 50%, 88% { opacity: 0; } 100% { opacity: 1; } }
-    @keyframes dash { to { stroke-dashoffset: -11; } }
     @media (prefers-reduced-motion: reduce) {
-      .player, .progress, .ghost-main, .ghost-mini, .trail { animation: none; }
-      .player { transform: translate(44px, 92px); }
-      .progress { transform: scaleX(.45); }
-      .ghost-mini { opacity: 1; }
-      .ghost-main { opacity: 0; }
+      .tile { animation: none; transform: translate(24px, 40px); }
     }
   </style>
   <defs>
-    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0d5d55"/>
-      <stop offset="1" stop-color="#083b3c"/>
+    <linearGradient id="fill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14a08e"/>
+      <stop offset="1" stop-color="#087f72"/>
     </linearGradient>
-    <linearGradient id="win" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#0e3536"/>
-      <stop offset="1" stop-color="#0a2829"/>
-    </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
-      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#032421" flood-opacity=".35"/>
-    </filter>
   </defs>
 
-  <!-- Page window -->
-  <g filter="url(#shadow)">
-    <rect x="20" y="40" width="330" height="268" rx="18" fill="url(#win)"/>
+  <!-- Destinations -->
+  <rect x="24.75" y="40.75" width="258.5" height="158.5" rx="17.25" stroke="#14a08e" stroke-opacity=".35" stroke-width="1.5" stroke-dasharray="6 6"/>
+  <rect x="236.75" y="196.75" width="138.5" height="84.5" rx="11.25" stroke="#14a08e" stroke-opacity=".35" stroke-width="1.5" stroke-dasharray="6 6"/>
+
+  <!-- The preserved content -->
+  <g class="tile" transform="translate(24 40)">
+    <rect width="260" height="160" rx="18" fill="url(#fill)"/>
+    <circle cx="130" cy="80" r="26" fill="#ffffff" fill-opacity=".18"/>
+    <path d="m122 67 21 13-21 13z" fill="#ffffff"/>
   </g>
-  <rect x="20.5" y="40.5" width="329" height="267" rx="17.5" stroke="#6de2c8" stroke-opacity=".14"/>
-  <circle cx="40" cy="62" r="4" fill="#6de2c8"/>
-  <circle cx="53" cy="62" r="4" fill="#4f7a79"/>
-  <circle cx="66" cy="62" r="4" fill="#4f7a79"/>
-  <rect x="88" y="55" width="132" height="14" rx="7" fill="#ffffff" fill-opacity=".06"/>
-  <text x="98" y="65.5" font-family="ui-monospace, Menlo, monospace" font-size="9" fill="#9cecd9" fill-opacity=".7">/watch/reel</text>
-
-  <!-- Main slot (empty state while the player is away) -->
-  <rect class="ghost-main" x="44.5" y="92.5" width="281" height="158" rx="11.5" stroke="#6de2c8" stroke-opacity=".35" stroke-dasharray="5 5"/>
-  <text class="ghost-main" x="185" y="176" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-size="10" fill="#9cecd9" fill-opacity=".6">slotKey="main"</text>
-  <rect x="44" y="266" width="168" height="8" rx="4" fill="#ffffff" fill-opacity=".1"/>
-  <rect x="44" y="282" width="112" height="8" rx="4" fill="#ffffff" fill-opacity=".06"/>
-
-  <!-- Mini slot -->
-  <rect class="ghost-mini" x="248.5" y="246.5" width="168" height="94" rx="11.5" stroke="#6de2c8" stroke-opacity=".45" stroke-dasharray="5 5" fill="#0a2829" fill-opacity=".6"/>
-  <text class="ghost-mini" x="332" y="297" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-size="10" fill="#9cecd9" fill-opacity=".7">slotKey="mini"</text>
-  <path class="trail" d="M232 200c40 0 70 14 86 40" stroke="#6de2c8" stroke-opacity=".45" stroke-width="2" stroke-linecap="round"/>
-
-  <!-- The preserved player: one node, two destinations -->
-  <g class="player" transform="translate(44 92)">
-    <rect width="282" height="159" rx="12" fill="url(#screen)"/>
-    <rect x=".5" y=".5" width="281" height="158" rx="11.5" stroke="#6de2c8" stroke-opacity=".5"/>
-    <circle cx="141" cy="72" r="26" fill="#ffffff" fill-opacity=".12"/>
-    <path d="m133 59 22 13-22 13z" fill="#6de2c8"/>
-    <rect x="16" y="135" width="250" height="5" rx="2.5" fill="#ffffff" fill-opacity=".18"/>
-    <rect class="progress" x="16" y="135" width="250" height="5" rx="2.5" fill="#6de2c8"/>
-    <rect x="16" y="14" width="64" height="18" rx="9" fill="#04201e" fill-opacity=".55"/>
-    <circle cx="28" cy="23" r="3.5" fill="#ff6b6b"/>
-    <text x="36" y="27" font-family="ui-monospace, Menlo, monospace" font-size="10" font-weight="600" fill="#ffffff">LIVE</text>
-  </g>
-
-  <!-- Caption -->
-  <rect x="20" y="330" width="146" height="28" rx="14" fill="#1a9a88" fill-opacity=".14"/>
-  <text x="93" y="348" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#1a9a88">same DOM node ✓</text>
 </svg>
