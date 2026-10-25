@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict'
 import { createRequire } from 'node:module'
-import React, { act, useLayoutEffect, useState } from 'react'
+import React, { useLayoutEffect, useState } from 'react'
 import { renderToString } from 'react-dom/server'
 import { JSDOM } from 'jsdom'
 import * as esm from '@charley-kim/react-preserve-portal'
 
+// React.act was added in 18.3; older supported versions expose it via test-utils.
+const act = React.act ?? (await import('react-dom/test-utils')).act
 const require = createRequire(import.meta.url)
 const cjs = require('@charley-kim/react-preserve-portal')
 const h = React.createElement

@@ -1,8 +1,11 @@
-import { useEffect, useInsertionEffect, version } from 'react'
+import * as React from 'react'
 
-// React 18 skips insertion cleanup when deleting an already hidden Suspense
-// tree. Its passive effects stay mounted while suspended and clean up on delete.
-// React 19 Activity disconnects passive effects on hide, but insertion cleanup
-// correctly follows final deletion. Neither branch publishes React updates.
+const { useEffect, useInsertionEffect } = React
+
+// React 18 and 19.0/19.1 skip insertion cleanup when deleting a hidden Suspense
+// tree. Their passive effects remain mounted while suspended and clean up on
+// delete. Activity-capable React (19.2+) disconnects passive effects on hide,
+// but correctly runs insertion cleanup on final deletion. Detect the public
+// capability rather than parsing version strings (including canary builds).
 export const useCommittedEffect =
-  Number.parseInt(version, 10) >= 19 ? useInsertionEffect : useEffect
+  'Activity' in React ? useInsertionEffect : useEffect

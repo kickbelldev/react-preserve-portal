@@ -1,3 +1,9 @@
+## Unreleased
+
+- Fix CommonJS TypeScript consumers by publishing a matching `.d.cts` declaration entry.
+- Fix hidden Suspense deletion in React 19.0/19.1 by selecting lifetime cleanup based on Activity support.
+- Expand browser coverage to Chromium, Firefox and WebKit, and test the supported React minimum and earlier React 19 releases.
+
 ## 0.4.0 (2026-10-25)
 
 - Reject Slot children/HTML that could overwrite the portal container.
