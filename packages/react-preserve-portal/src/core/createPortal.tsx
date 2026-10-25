@@ -1,7 +1,7 @@
 import { InternalPortalHost } from '../components/InternalPortalHost'
 import { InternalPortalSlot } from '../components/InternalPortalSlot'
 import { usePortal } from '../model/usePortal'
-import { disposePortal } from '../model/store'
+import { declareSlots, disposePortal } from '../model/store'
 
 import type {
   CreatePortalOptions,
@@ -18,6 +18,7 @@ export function createPortal<
   type TSlot = TSlots[number]
 
   const { id, slots } = options
+  if (process.env.NODE_ENV !== 'production') declareSlots(id, slots)
 
   function Host<T extends keyof HTMLElementTagNameMap = 'div'>(
     props: HostProps<T>,

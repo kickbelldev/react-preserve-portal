@@ -1,3 +1,9 @@
+## Unreleased
+
+- When the newest Slot (or manual registration) for a key is removed, return the content to the most recent registration that is still mounted instead of hiding it. Overlapping Slots during exit animations no longer drop the content.
+- Fall back to `appendChild` if `Element.moveBefore` throws for a connected move.
+- Add development-only warnings for multiple Hosts per portal, undeclared slot keys, one ID created with different slots, and a Host `as` change after mount. Production builds strip them.
+
 ## 0.4.1 (2026-10-25)
 
 - Fix CommonJS TypeScript consumers by publishing a matching `.d.cts` declaration entry.

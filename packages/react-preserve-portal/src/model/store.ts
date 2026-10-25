@@ -1,3 +1,5 @@
+import { warnOnce } from './warn'
+
 export const DEFAULT_PORTAL_ID = 'default'
 
 export interface PortalInstance {
@@ -6,7 +8,37 @@ export interface PortalInstance {
   returnPath: string | null
 }
 
-function createPortalStore() {
+interface Registration {
+  token: symbol
+  target: HTMLElement
+}
+
+// Slots declared by createPortal, recorded in development to validate keys.
+const declaredSlots = new Map<string, readonly string[]>()
+
+export function declareSlots(portalId: string, slots: readonly string[]) {
+  const previous = declaredSlots.get(portalId)
+  if (previous && previous.join('\0') !== slots.join('\0')) {
+    warnOnce(
+      `createPortal was called twice for id "${portalId}" with different slots ` +
+        `([${previous.join(', ')}] and [${slots.join(', ')}]). Factories with the ` +
+        'same id share state; use a distinct id for an independent portal.',
+    )
+  }
+  declaredSlots.set(portalId, slots)
+}
+
+function checkSlotKey(portalId: string, slotKey: string, action: string) {
+  const slots = declaredSlots.get(portalId)
+  if (slots && !slots.includes(slotKey)) {
+    warnOnce(
+      `${action} used slot "${slotKey}", which portal "${portalId}" does not ` +
+        `declare. Declared slots: ${slots.join(', ') || '(none)'}.`,
+    )
+  }
+}
+
+function createPortalStore(portalId: string) {
   const initialState: PortalInstance = {
     targets: new Map(),
     slotKey: null,
@@ -14,8 +46,10 @@ function createPortalStore() {
   }
   let state = initialState
   const listeners = new Set<() => void>()
-  const registrations = new Map<string, symbol>()
+  // Each key keeps a stack so removing the newest Slot reveals the previous one.
+  const registrations = new Map<string, Registration[]>()
   let owners = 0
+  let hosts = 0
   let disposed = false
 
   function assertLive() {
@@ -30,16 +64,33 @@ function createPortalStore() {
     listeners.forEach((listener) => listener())
   }
 
+  // Publish the newest registration for a key, or remove the key when none remain.
+  function publish(slotKey: string) {
+    const stack = registrations.get(slotKey)
+    const target = stack?.[stack.length - 1]?.target
+    if (state.targets.get(slotKey) === target) return
+    const targets = new Map(state.targets)
+    if (target) targets.set(slotKey, target)
+    else targets.delete(slotKey)
+    update({ ...state, targets })
+  }
+
   function unregisterTarget(slotKey: string, token?: symbol) {
     if (disposed) return
-    if (!state.targets.has(slotKey)) return
-    // Registrations have identities even when they point to the same element.
-    if (token && registrations.get(slotKey) !== token) return
-    registrations.delete(slotKey)
-
-    const targets = new Map(state.targets)
-    targets.delete(slotKey)
-    update({ ...state, targets })
+    const stack = registrations.get(slotKey)
+    if (!stack) return
+    if (token) {
+      // Registrations have identities even when they point to the same element.
+      const index = stack.findIndex(
+        (registration) => registration.token === token,
+      )
+      if (index === -1) return
+      stack.splice(index, 1)
+    } else {
+      stack.length = 0
+    }
+    if (!stack.length) registrations.delete(slotKey)
+    publish(slotKey)
   }
 
   return {
@@ -48,6 +99,19 @@ function createPortalStore() {
       owners++
       return () => {
         owners--
+      }
+    },
+    /** Count mounted Hosts; more than one appends several containers to a slot. */
+    retainHost() {
+      hosts++
+      if (process.env.NODE_ENV !== 'production' && hosts > 1) {
+        warnOnce(
+          `${hosts} Hosts are mounted for portal "${portalId}". Each Host moves its ` +
+            'own container into the active slot. Render one Host per portal id.',
+        )
+      }
+      return () => {
+        hosts--
       }
     },
     dispose() {
@@ -69,18 +133,20 @@ function createPortalStore() {
     },
     registerTarget(slotKey: string, target: HTMLElement) {
       assertLive()
+      if (process.env.NODE_ENV !== 'production')
+        checkSlotKey(portalId, slotKey, 'Slot or registerTarget')
       const token = Symbol(slotKey)
-      registrations.set(slotKey, token)
-      if (state.targets.get(slotKey) !== target) {
-        const targets = new Map(state.targets)
-        targets.set(slotKey, target)
-        update({ ...state, targets })
-      }
+      const stack = registrations.get(slotKey) ?? []
+      stack.push({ token, target })
+      registrations.set(slotKey, stack)
+      publish(slotKey)
       return () => unregisterTarget(slotKey, token)
     },
     unregisterTarget,
     setSlotKey(slotKey: string | null) {
       assertLive()
+      if (process.env.NODE_ENV !== 'production' && slotKey !== null)
+        checkSlotKey(portalId, slotKey, 'setSlotKey')
       if (state.slotKey !== slotKey) update({ ...state, slotKey })
     },
     setReturnPath(returnPath: string | null) {
@@ -111,7 +177,7 @@ export function disposePortal(portalId: string): boolean {
 export function getPortalStore(portalId: string) {
   let store = portals.get(portalId)
   if (!store) {
-    store = createPortalStore()
+    store = createPortalStore(portalId)
     portals.set(portalId, store)
   }
   return store

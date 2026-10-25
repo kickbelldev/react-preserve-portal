@@ -1,10 +1,16 @@
-import { useLayoutEffect, useState, useSyncExternalStore } from 'react'
+import {
+  useEffect,
+  useLayoutEffect,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 import { createPortal } from 'react-dom'
 
 import type { HostProps } from '../core/types'
-import { DEFAULT_PORTAL_ID } from '../model/store'
+import { DEFAULT_PORTAL_ID, getPortalStore } from '../model/store'
 import { usePortal } from '../model/usePortal'
 import { useCommittedEffect } from '../model/useCommittedEffect'
+import { warnOnce } from '../model/warn'
 
 type InternalPortalHostProps<T extends keyof HTMLElementTagNameMap> =
   HostProps<T> & { portalId?: string }
@@ -24,6 +30,23 @@ function ClientPortalHost<T extends keyof HTMLElementTagNameMap = 'div'>({
   const [hasMounted, setHasMounted] = useState(mountWhen === 'immediate')
   const { slotKey, targets } = usePortal(portalId)
   const target = slotKey === null ? undefined : targets.get(slotKey)
+  const store = getPortalStore(portalId)
+
+  // Passive, so Hosts hidden by Activity do not count as duplicates.
+  useEffect(() => store.retainHost(), [store])
+
+  useEffect(() => {
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      unmanagedNode.localName !== container
+    ) {
+      warnOnce(
+        `Host "as" changed from "${unmanagedNode.localName}" to "${container}" ` +
+          'after mount. The container tag is fixed; remount Host with a new key ' +
+          'to change it.',
+      )
+    }
+  }, [container, unmanagedNode])
 
   useLayoutEffect(() => {
     if (target && target.ownerDocument !== unmanagedNode.ownerDocument) {
@@ -48,7 +71,13 @@ function ClientPortalHost<T extends keyof HTMLElementTagNameMap = 'div'>({
         unmanagedNode.isConnected &&
         target.ownerDocument === unmanagedNode.ownerDocument
       ) {
-        target.moveBefore(unmanagedNode, null)
+        try {
+          target.moveBefore(unmanagedNode, null)
+        } catch {
+          // moveBefore can still throw for states the checks above miss (it is
+          // new and implementations differ); reinsertion preserves DOM and state.
+          target.appendChild(unmanagedNode)
+        }
       } else {
         target.appendChild(unmanagedNode)
       }
