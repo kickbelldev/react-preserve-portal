@@ -13,7 +13,9 @@ npm install @charley-kim/react-preserve-portal
 
 Requires React and React DOM 18 or later. TypeScript users need TypeScript 5 or
 later for automatic literal inference. The library has no runtime dependencies
-other than its React peer dependencies.
+other than its React peer dependencies. Both ESM and CommonJS consumers have
+matching runtime and TypeScript declaration entries. Version 0.4.1 also fixes
+final cleanup of hidden Suspense Hosts in React 19.0/19.1.
 
 Read the [technical documentation](https://kickbelldev.github.io/react-preserve-portal/en/)
 ([한국어](https://kickbelldev.github.io/react-preserve-portal/)) for detailed guides,
@@ -89,7 +91,7 @@ Host → React portal → stable container → currently selected Slot
 
 ## API
 
-The reference below describes 0.4.0. See the
+The reference below describes 0.4.1. See the
 [lifecycle guide](https://kickbelldev.github.io/react-preserve-portal/en/guide/lifecycle-safety.html)
 for connected mounting, hidden boundaries, destination ownership, and disposal.
 
