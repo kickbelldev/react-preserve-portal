@@ -33,7 +33,7 @@ export function VideoControls({ compact = false }: { compact?: boolean }) {
         disabled={!duration}
         onChange={(e) => seek(Number(e.currentTarget.value))}
         style={{
-          background: `linear-gradient(to right, #5eead4 ${progress}%, rgb(255 255 255 / 0.15) ${progress}%)`,
+          background: `linear-gradient(to right, #fafafa ${progress}%, rgb(255 255 255 / 0.15) ${progress}%)`,
         }}
         className="block h-1 w-full cursor-pointer appearance-none rounded-full disabled:cursor-default [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-white [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
       />
@@ -42,7 +42,7 @@ export function VideoControls({ compact = false }: { compact?: boolean }) {
           onClick={togglePlay}
           aria-label={active ? '일시정지' : '재생'}
           aria-busy={isPlayPending}
-          className={`grid shrink-0 place-items-center rounded-full bg-white text-zinc-950 transition hover:bg-teal-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300 ${compact ? 'h-8 w-8' : 'h-9 w-9'}`}
+          className={`grid shrink-0 place-items-center rounded-full bg-white text-zinc-950 transition hover:bg-zinc-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${compact ? 'h-8 w-8' : 'h-9 w-9'}`}
         >
           {active ? (
             <PauseIcon className="h-4 w-4" />

@@ -7,7 +7,7 @@ export function HomePage() {
   return (
     <div className="space-y-10">
       <section className="max-w-2xl space-y-4">
-        <p className="font-mono text-xs tracking-[0.16em] text-teal-300">
+        <p className="font-mono text-xs tracking-[0.16em] text-zinc-500">
           REACT PRESERVE PORTAL
         </p>
         <h1 className="text-3xl font-bold tracking-tight break-keep sm:text-4xl">
@@ -18,7 +18,7 @@ export function HomePage() {
           그대로 옮기기 때문에 다시 로드하지 않고 재생 위치도 이어집니다.
         </p>
         <p className="flex items-center gap-2 text-sm text-zinc-500">
-          <MiniIcon className="h-4 w-4 text-teal-300" />
+          <MiniIcon className="h-4 w-4 text-zinc-300" />
           영상 페이지에서 Home이나 About으로 이동하면 오른쪽 아래에
           미니플레이어가 나타납니다.
         </p>
@@ -30,7 +30,7 @@ export function HomePage() {
             key={id}
             to={`/video/${id}`}
             aria-label={`${video.title} 보기`}
-            className="group overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition-colors hover:border-teal-300/60"
+            className="group overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition-colors hover:border-white/40"
           >
             <div className="relative aspect-video overflow-hidden bg-black">
               <img
@@ -39,7 +39,7 @@ export function HomePage() {
                 className="h-full w-full object-cover opacity-80 transition duration-300 group-hover:scale-[1.02] group-hover:opacity-100"
               />
               <span className="absolute inset-0 grid place-items-center">
-                <span className="grid h-12 w-12 place-items-center rounded-full bg-black/50 text-white backdrop-blur transition group-hover:bg-teal-300 group-hover:text-zinc-950">
+                <span className="grid h-12 w-12 place-items-center rounded-full bg-black/50 text-white backdrop-blur transition group-hover:bg-white group-hover:text-zinc-950">
                   <PlayIcon className="h-5 w-5 translate-x-px" />
                 </span>
               </span>

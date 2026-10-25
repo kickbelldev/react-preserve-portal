@@ -46,7 +46,7 @@ export function RootLayout() {
               className="h-6 w-6"
             />
             <span className="hidden sm:inline">Preserve Portal</span>
-            <span className="rounded-full bg-teal-300/10 px-2 py-0.5 text-[11px] font-medium text-teal-300">
+            <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-medium text-zinc-300">
               demo
             </span>
           </NavLink>
@@ -72,7 +72,7 @@ export function RootLayout() {
             href="https://kickbelldev.github.io/react-preserve-portal/"
             target="_blank"
             rel="noreferrer"
-            className="ml-auto hidden items-center gap-1.5 text-sm text-zinc-400 hover:text-teal-300 md:flex"
+            className="ml-auto hidden items-center gap-1.5 text-sm text-zinc-400 hover:text-white md:flex"
           >
             문서
             <ExternalIcon className="h-3.5 w-3.5" />

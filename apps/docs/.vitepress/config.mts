@@ -83,7 +83,7 @@ export default defineConfig({
   },
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}logo.svg` }],
-    ['meta', { name: 'theme-color', content: '#087f72' }],
+    ['meta', { name: 'theme-color', content: '#18181b' }],
   ],
   // Page data is shared by prerendered HTML and the client router. transformHead
   // alone would leave the first page's canonical/share tags behind on navigation.
@@ -214,7 +214,7 @@ export default defineConfig({
     },
   },
   themeConfig: {
-    logo: '/logo.svg',
+    logo: { light: '/logo.svg', dark: '/logo-dark.svg' },
     siteTitle: 'Preserve Portal',
     socialLinks: [
       {
