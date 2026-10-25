@@ -3,8 +3,8 @@ layout: home
 title: Same DOM. New destination.
 hero:
   name: React Preserve Portal
-  text: One component. More than one place.
-  tagline: A React portal library for moving a video, editor, or canvas without remounting it. Keep content in one Host, then choose where it appears.
+  text: Move your UI. Keep its state.
+  tagline: Players, editors, canvases. One React tree, one DOM container, wherever your interface needs it next.
   image:
     src: /hero.svg
     alt: A playing video moves from the main view into a mini player without stopping

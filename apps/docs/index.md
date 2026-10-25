@@ -3,8 +3,8 @@ layout: home
 title: DOM은 그대로, 위치만 새롭게
 hero:
   name: React Preserve Portal
-  text: 같은 컴포넌트를 다른 자리로
-  tagline: 영상, 에디터, 캔버스를 다시 마운트하지 않고 옮기는 React 포털 라이브러리입니다. 콘텐츠는 한 곳에 두고, 표시할 슬롯을 선택하세요.
+  text: 이동해도 이어지는 UI.
+  tagline: 플레이어, 에디터, 캔버스. 하나의 React 트리와 DOM을 유지하면서 필요한 자리로 옮기세요.
   image:
     src: /hero.svg
     alt: 메인 화면에서 재생 중인 플레이어가 재생을 멈추지 않고 미니 플레이어 자리로 이동하는 모습
