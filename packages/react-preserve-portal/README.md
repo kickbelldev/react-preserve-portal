@@ -132,6 +132,7 @@ keep the Host container connected, while React controls visibility and Effects.
 | --------------- | ----------------------------------------------------------- |
 | `slotKey`       | A key declared in `slots`                                   |
 | `as`            | Destination HTML tag, default `'div'`                       |
+| `ref`           | Receives the destination element (React 18 and 19)          |
 | HTML attributes | `className`, `id`, event handlers, ARIA and data attributes |
 
 ```tsx
@@ -167,7 +168,8 @@ mount. Production bundles strip these checks.
 | `registerTarget(key, element)`       | Register a manual DOM destination; returns a cleanup function                |
 | `unregisterTarget(key)`              | Remove every registration for that key                                       |
 
-Action references remain stable for a given ID. Updating one portal does not
+Action references remain stable for a given ID, and the returned object is the
+same until the state changes. Updating one portal does not
 notify subscribers of unrelated portals. Manual registrations should use the
 returned cleanup function so a stale cleanup cannot unregister a replacement:
 

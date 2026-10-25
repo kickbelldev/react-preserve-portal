@@ -2,6 +2,9 @@
 
 - When the newest Slot (or manual registration) for a key is removed, return the content to the most recent registration that is still mounted instead of hiding it. Overlapping Slots during exit animations no longer drop the content.
 - Fall back to `appendChild` if `Element.moveBefore` throws for a connected move.
+- Accept a `ref` on `Slot` (React 18 and 19). Inline ref functions do not re-register the destination.
+- Return the same `usePortal()` object until the portal state changes, so it is safe in effect dependencies.
+- With `mountWhen="connected"`, observe the document only while the selected destination sits in a detached tree.
 - Add development-only warnings for multiple Hosts per portal, undeclared slot keys, one ID created with different slots, and a Host `as` change after mount. Production builds strip them.
 
 ## 0.4.1 (2026-10-25)

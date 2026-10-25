@@ -1,4 +1,4 @@
-import type { HTMLAttributes, ReactElement, ReactNode } from 'react'
+import type { HTMLAttributes, ReactElement, ReactNode, Ref } from 'react'
 
 /**
  * Define a portal once, outside React render. IDs share state within a module.
@@ -35,6 +35,8 @@ export interface SlotProps<
 > {
   slotKey: TSlot
   as?: T
+  /** Receives the destination element, e.g. for measurement. */
+  ref?: Ref<HTMLElementTagNameMap[T]>
   children?: never
   dangerouslySetInnerHTML?: never
 }

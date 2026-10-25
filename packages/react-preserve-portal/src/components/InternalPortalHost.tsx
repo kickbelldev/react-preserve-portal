@@ -92,8 +92,10 @@ function ClientPortalHost<T extends keyof HTMLElementTagNameMap = 'div'>({
       setHasMounted(true)
       return
     }
-    // Only observe while waiting for the first connection (including detached
+    // Without a target the container cannot connect; this effect reruns when
+    // one registers. Observe only for targets in a detached tree (detached
     // React roots / manual targets attached later). No observer after mounting.
+    if (!target) return
     const observer = new MutationObserver(() => {
       if (unmanagedNode.isConnected) {
         observer.disconnect()
