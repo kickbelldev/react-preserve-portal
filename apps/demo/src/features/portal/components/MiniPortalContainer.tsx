@@ -27,7 +27,7 @@ export function MiniPortalContainer({ children }: MiniPortalContainerProps) {
           pause()
           reset()
         }}
-        className="absolute top-2 right-2 grid h-7 w-7 place-items-center rounded-full bg-black/60 text-white backdrop-blur transition hover:bg-black/80 focus-visible:outline-2 focus-visible:outline-teal-300"
+        className="absolute top-2 right-2 grid h-7 w-7 place-items-center rounded-full bg-black/60 text-white backdrop-blur transition hover:bg-black/80 focus-visible:outline-2 focus-visible:outline-white"
       >
         <CloseIcon className="h-3.5 w-3.5" />
       </button>

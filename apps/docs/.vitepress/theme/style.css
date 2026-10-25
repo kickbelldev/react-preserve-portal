@@ -1,41 +1,37 @@
 :root {
-  --vp-c-brand-1: #087f72;
-  --vp-c-brand-2: #096b61;
-  --vp-c-brand-3: #087f72;
-  --vp-c-brand-soft: rgba(8, 127, 114, 0.12);
+  --vp-c-brand-1: #18181b;
+  --vp-c-brand-2: #3f3f46;
+  --vp-c-brand-3: #18181b;
+  --vp-c-brand-soft: rgba(24, 24, 27, 0.07);
   --vp-font-family-base:
     'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI',
     sans-serif;
   --vp-home-hero-name-color: transparent;
-  --vp-home-hero-name-background: linear-gradient(
-    120deg,
-    #087f72 10%,
-    #2bb59f 60%,
-    #6de2c8
-  );
+  --vp-home-hero-name-background: linear-gradient(120deg, #09090b 20%, #71717a);
   --vp-home-hero-image-background-image: radial-gradient(
     ellipse,
-    #8fe5cd66,
+    #a1a1aa40,
     transparent 70%
   );
   --vp-home-hero-image-filter: blur(48px);
   --demo-radius: 14px;
-  --demo-shadow: 0 1px 2px #0000000a, 0 10px 30px -12px #0a3b3633;
+  --demo-shadow: 0 1px 2px #0000000a, 0 10px 30px -12px #18181b29;
 }
 .dark {
-  --vp-c-brand-1: #6de2c8;
-  --vp-c-brand-2: #9cecd9;
-  --vp-c-brand-3: #137f71;
-  --vp-c-brand-soft: rgba(109, 226, 200, 0.12);
-  --vp-home-hero-name-background: linear-gradient(
-    120deg,
-    #6de2c8 10%,
-    #9cecd9 60%,
-    #e6fbf5
-  );
+  --vp-c-brand-1: #fafafa;
+  --vp-c-brand-2: #d4d4d8;
+  --vp-c-brand-3: #fafafa;
+  --vp-c-brand-soft: rgba(250, 250, 250, 0.1);
+  /* Light brand buttons need dark text. */
+  --vp-button-brand-text: #18181b;
+  --vp-button-brand-hover-text: #18181b;
+  --vp-button-brand-active-text: #18181b;
+  --vp-button-brand-hover-bg: #d4d4d8;
+  --vp-button-brand-active-bg: #a1a1aa;
+  --vp-home-hero-name-background: linear-gradient(120deg, #fafafa 20%, #a1a1aa);
   --vp-home-hero-image-background-image: radial-gradient(
     ellipse,
-    #6de2c833,
+    #ffffff1a,
     transparent 70%
   );
   --demo-shadow: 0 1px 2px #0000004d, 0 14px 34px -14px #000000aa;
@@ -296,7 +292,7 @@
 .demo-media {
   position: relative;
   aspect-ratio: 16 / 9;
-  background: #05211f;
+  background: #09090b;
 }
 .demo-media video {
   display: block;

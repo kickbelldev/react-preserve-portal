@@ -12,18 +12,19 @@
   </style>
   <defs>
     <linearGradient id="fill" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#14a08e"/>
-      <stop offset="1" stop-color="#087f72"/>
+      <stop offset="0" stop-color="#52525b"/>
+      <stop offset="1" stop-color="#27272a"/>
     </linearGradient>
   </defs>
 
   <!-- Destinations -->
-  <rect x="24.75" y="40.75" width="258.5" height="158.5" rx="17.25" stroke="#14a08e" stroke-opacity=".35" stroke-width="1.5" stroke-dasharray="6 6"/>
-  <rect x="236.75" y="196.75" width="138.5" height="84.5" rx="11.25" stroke="#14a08e" stroke-opacity=".35" stroke-width="1.5" stroke-dasharray="6 6"/>
+  <rect x="24.75" y="40.75" width="258.5" height="158.5" rx="17.25" stroke="#a1a1aa" stroke-opacity=".6" stroke-width="1.5" stroke-dasharray="6 6"/>
+  <rect x="236.75" y="196.75" width="138.5" height="84.5" rx="11.25" stroke="#a1a1aa" stroke-opacity=".6" stroke-width="1.5" stroke-dasharray="6 6"/>
 
   <!-- The preserved content -->
   <g class="tile" transform="translate(24 40)">
     <rect width="260" height="160" rx="18" fill="url(#fill)"/>
+    <rect x=".5" y=".5" width="259" height="159" rx="17.5" stroke="#ffffff" stroke-opacity=".14"/>
     <circle cx="130" cy="80" r="26" fill="#ffffff" fill-opacity=".18"/>
     <path d="m122 67 21 13-21 13z" fill="#ffffff"/>
   </g>

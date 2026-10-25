@@ -20,7 +20,7 @@ export function AboutPage() {
   return (
     <div className="max-w-2xl space-y-8">
       <section className="space-y-3">
-        <p className="font-mono text-xs tracking-[0.16em] text-teal-300">
+        <p className="font-mono text-xs tracking-[0.16em] text-zinc-500">
           ABOUT THIS DEMO
         </p>
         <h1 className="text-3xl font-bold tracking-tight break-keep">
@@ -39,7 +39,7 @@ export function AboutPage() {
             key={step.title}
             className="flex gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5"
           >
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-teal-300/10 font-mono text-xs text-teal-300">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/10 font-mono text-xs text-zinc-300">
               {index + 1}
             </span>
             <div className="min-w-0 space-y-2">
@@ -47,7 +47,7 @@ export function AboutPage() {
               <p className="text-sm leading-relaxed text-zinc-400 break-keep">
                 {step.body}
               </p>
-              <code className="block overflow-x-auto rounded-lg bg-black/40 px-3 py-2 font-mono text-xs text-teal-200">
+              <code className="block overflow-x-auto rounded-lg bg-black/40 px-3 py-2 font-mono text-xs text-zinc-300">
                 {step.code}
               </code>
             </div>
@@ -57,7 +57,7 @@ export function AboutPage() {
 
       <p className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
         <a
-          className="text-teal-300 underline-offset-4 hover:underline"
+          className="text-zinc-200 underline underline-offset-4 decoration-zinc-600 hover:decoration-zinc-200"
           href="https://kickbelldev.github.io/react-preserve-portal/guide/video-player.html"
           target="_blank"
           rel="noreferrer"
@@ -65,7 +65,7 @@ export function AboutPage() {
           미니플레이어 가이드 →
         </a>
         <a
-          className="text-teal-300 underline-offset-4 hover:underline"
+          className="text-zinc-200 underline underline-offset-4 decoration-zinc-600 hover:decoration-zinc-200"
           href="https://github.com/kickbelldev/react-preserve-portal/tree/main/apps/demo"
           target="_blank"
           rel="noreferrer"
