@@ -22,7 +22,7 @@ yarn add @charley-kim/react-preserve-portal
 
 :::
 
-React와 React DOM 18 이상이 필요합니다. 이 문서는 **0.3.0 API**를 기준으로 합니다.
+React와 React DOM 18 이상이 필요합니다. 이 문서는 **0.4.0 API**를 기준으로 합니다.
 
 ## 포털 정의와 사용
 

@@ -1,5 +1,11 @@
 ## Unreleased
 
+- Fix CommonJS TypeScript consumers by publishing a matching `.d.cts` declaration entry.
+- Fix hidden Suspense deletion in React 19.0/19.1 by selecting lifetime cleanup based on Activity support.
+- Expand browser coverage to Chromium, Firefox and WebKit, and test the supported React minimum and earlier React 19 releases.
+
+## 0.4.0 (2026-10-25)
+
 - Reject Slot children/HTML that could overwrite the portal container.
 - Give each target registration an identity, including repeated registrations of the same element.
 - Add `Host mountWhen="connected"` for initial measurement and autofocus after attachment.
@@ -7,7 +13,25 @@
 - Add `Portal.dispose()` for unused IDs, with protection for mounted/hidden owners and manual targets.
 - Expose targets as a `ReadonlyMap` and reject cross-document or cyclic destinations.
 
-These changes are on the source branch and are not included in npm 0.3.0.
+### Compatibility and migration
+
+This pre-1.0 minor release tightens the destination contract: Slots must be empty,
+`targets` is now typed as `ReadonlyMap`, and cross-document/cyclic destinations
+are rejected. Move placeholders beside Slots, use registration actions instead of
+mutating the snapshot, and keep destinations in Host's document. The default
+immediate mount, `Host node`, and existing hook actions remain supported.
+
+`mountWhen="connected"` is opt-in. `dispose()` only releases an unused ID after
+its React owners and manual registrations are gone; stale actions throw after
+successful disposal. Explicit hide/reset still detach content.
+
+### Validation and documentation
+
+- Add React 18/19 browser regressions for native/fallback moves, iframe lifetimes,
+  hidden deletion, connected mounting and disposal.
+- Keep both demo destinations mounted across routes and synchronize playback
+  with media events, rejected play promises and explicit pause on close.
+- Update the bilingual API, migration and lifecycle guides for 0.4.0.
 
 ## 0.3.0 (2026-10-24)
 

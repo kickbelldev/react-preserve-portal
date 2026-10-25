@@ -5,7 +5,7 @@ description: Types, defaults, and behavior for createPortal, Host, Slot, and use
 
 # API reference
 
-This reference describes npm **0.3.0**. See [unreleased lifecycle fixes](./guide/lifecycle-safety) for the new APIs and stricter ownership checks on main.
+This reference describes **0.4.0**. See [lifecycle and ownership](./guide/lifecycle-safety) for connected mounting, hidden boundaries and safe disposal.
 
 ## `createPortal({ id, slots })`
 
@@ -13,7 +13,7 @@ This reference describes npm **0.3.0**. See [unreleased lifecycle fixes](./guide
 import { createPortal } from '@charley-kim/react-preserve-portal'
 
 export const Player = createPortal({ id: 'player', slots: ['main', 'mini'] })
-// Returns { id, slots, Host, Slot, usePortal }
+// Returns { id, slots, Host, Slot, usePortal, dispose }
 // Player.Slot's slotKey: 'main' | 'mini'
 ```
 
@@ -32,11 +32,14 @@ Calling the factory during render creates new Host and Slot component types, cau
 <Player.Host node={<VideoPlayer />} />
 ```
 
-| Prop       | Type / default     | Meaning                                                          |
-| ---------- | ------------------ | ---------------------------------------------------------------- |
-| `children` | `ReactNode`        | Content to preserve. Supply either `children` or `node`.         |
-| `node`     | `ReactNode`        | Content prop retained for compatibility.                         |
-| `as`       | HTML tag / `'div'` | Container tag, chosen at creation. Keep it stable while mounted. |
+| Prop        | Type / default                               | Meaning                                                              |
+| ----------- | -------------------------------------------- | -------------------------------------------------------------------- |
+| `children`  | `ReactNode`                                  | Content to preserve. Supply either `children` or `node`.             |
+| `node`      | `ReactNode`                                  | Content prop retained for compatibility.                             |
+| `as`        | HTML tag / `'div'`                           | Container tag, chosen at creation. Keep it stable while mounted.     |
+| `mountWhen` | `'immediate' \| 'connected'` / `'immediate'` | Mount content immediately or wait for the first document connection. |
+
+With `mountWhen="connected"`, initial layout effects and `autoFocus` run after connection. Later moves or hiding do not remount content. Connection does not guarantee visibility or a nonzero size.
 
 Host does not forward general HTML attributes or refs. Put styling, events, and ARIA attributes on your content or Slot. Host renders `null` on the server.
 
@@ -57,7 +60,7 @@ Host does not forward general HTML attributes or refs. Put styling, events, and 
 | `as`            | HTML tag / `'div'`            | Destination tag. Use an element that can contain children.  |
 | HTML attributes | Tag-specific `HTMLAttributes` | `className`, `id`, events, ARIA, data attributes, and more. |
 
-Slots register on mount and unregister on unmount. Host renders the content. Prefer rendering empty-state descriptions as siblings instead of adding React children inside a Slot.
+Slots register on mount and unregister on unmount; hidden boundaries can also detach their refs. Host renders the content. `children` and `dangerouslySetInnerHTML` are rejected by types and at runtime. Render empty-state descriptions as siblings and never overwrite Slot content through external DOM code.
 
 If destinations with the same key overlap, **the last registration wins**. Cleaning up an older Slot does not unregister its replacement. Removing the latest destination does not automatically restore an older registration.
 
@@ -76,16 +79,16 @@ const {
 } = Player.usePortal()
 ```
 
-| Member                         | Type                        | Behavior                                                                             |
-| ------------------------------ | --------------------------- | ------------------------------------------------------------------------------------ |
-| `slotKey`                      | Slot key or `null`          | Current selection; initially `null`.                                                 |
-| `setSlotKey(key)`              | `(key) => void`             | Select a destination, or hide with `null`.                                           |
-| `returnPath`                   | `string \| null`            | Optional router metadata; initially `null`.                                          |
-| `setReturnPath(path)`          | `(string \| null) => void`  | Set metadata without changing the URL.                                               |
-| `targets`                      | `Map<SlotKey, HTMLElement>` | Snapshot of registered destinations. Do not mutate it.                               |
-| `registerTarget(key, element)` | Returns `() => void`        | Register a manual destination and return an ownership-safe cleanup.                  |
-| `unregisterTarget(key)`        | `(key) => void`             | Remove the current registration for a key.                                           |
-| `reset()`                      | `() => void`                | Hide content and clear `returnPath`. Keep destinations and content's internal state. |
+| Member                         | Type                                | Behavior                                                                             |
+| ------------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------ |
+| `slotKey`                      | Slot key or `null`                  | Current selection; initially `null`.                                                 |
+| `setSlotKey(key)`              | `(key) => void`                     | Select a destination, or hide with `null`.                                           |
+| `returnPath`                   | `string \| null`                    | Optional router metadata; initially `null`.                                          |
+| `setReturnPath(path)`          | `(string \| null) => void`          | Set metadata without changing the URL.                                               |
+| `targets`                      | `ReadonlyMap<SlotKey, HTMLElement>` | Snapshot of registered destinations. Do not mutate it.                               |
+| `registerTarget(key, element)` | Returns `() => void`                | Register a manual destination and return an ownership-safe cleanup.                  |
+| `unregisterTarget(key)`        | `(key) => void`                     | Remove the current registration for a key.                                           |
+| `reset()`                      | `() => void`                        | Hide content and clear `returnPath`. Keep destinations and content's internal state. |
 
 Action references are stable per ID. Changes to another ID do not notify this portal's subscribers. The hook subscribes to the entire snapshot for its chosen ID.
 
@@ -104,7 +107,20 @@ function ExternalTarget({ element }: { element: HTMLElement | null }) {
 }
 ```
 
-The returned cleanup only unregisters the element if it still owns the registration. Prefer it over a manual `unregisterTarget` call to avoid removing a newer destination. Never register a descendant of the portal's own container as its destination: that would form a DOM cycle, and the browser rejects the move.
+Every registration has a distinct identity, even when reusing the same element. The returned cleanup only unregisters that registration if it is still current. Prefer it over a manual `unregisterTarget` call to avoid removing a newer destination. Destinations must be in Host's document and cannot be its container or descendants. The library rejects cross-document adoption and cyclic moves before changing the DOM.
+
+## `dispose(): boolean`
+
+```tsx
+// After all React owners of this ID have unmounted:
+root.unmount()
+cleanupManualTarget()
+const released = Player.dispose()
+```
+
+Returns `false` while a Host, Slot, hook owner, subscriber or manual destination remains. Hidden committed owners also block disposal. Returns `true` after removing the ID's store or if no store exists. `reset()` only hides content; it does not dispose the store.
+
+Call this after ownership ends, never during render or while mounting/transferring owners. Retained actions from the disposed store throw. Old registration cleanup is a safe no-op, and a later mount of the same factory uses a fresh empty store.
 
 ## Public types
 

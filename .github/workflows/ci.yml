@@ -24,17 +24,27 @@ jobs:
       - run: |
           mkdir -p /tmp/portal-release
           corepack pnpm --dir packages/react-preserve-portal pack --pack-destination /tmp/portal-release
-      - run: node scripts/verify-package.mjs /tmp/portal-release/*.tgz 18
-      - run: node scripts/verify-package.mjs /tmp/portal-release/*.tgz 19
+      - run: |
+          for react in 18.0.0 18.2.0 18.3.1 19.0.0 19.1.0 19.2.3; do
+            node scripts/verify-package.mjs /tmp/portal-release/*.tgz "$react"
+          done
   browser:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
+      fail-fast: false
       matrix:
         react: ['18.3.1', '19.2.3']
+        browser: ['chromium', 'firefox', 'webkit']
+        include:
+          - { react: '18.0.0', browser: chromium }
+          - { react: '18.2.0', browser: chromium }
+          - { react: '19.0.0', browser: chromium }
+          - { react: '19.1.0', browser: chromium }
     env:
       NX_DAEMON: 'false'
       NX_TUI: 'false'
       REACT_MODULES: /tmp/portal-browser-react/node_modules
+      PORTAL_BROWSER: ${{ matrix.browser }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -47,11 +57,11 @@ jobs:
       - run: corepack pnpm install --frozen-lockfile
       - run: npm install --prefix /tmp/portal-browser-react --ignore-scripts --no-audit --no-fund react@${{ matrix.react }} react-dom@${{ matrix.react }}
       - run: python -m pip install playwright==1.62.0
-      - run: python -m playwright install --with-deps chromium
+      - run: python -m playwright install --with-deps ${{ matrix.browser }}
       - run: python scripts/lifecycle-smoke.py
-      - if: matrix.react == '19.2.3'
+      - if: matrix.react == '19.2.3' && matrix.browser == 'chromium'
         run: corepack pnpm exec nx run demo:build --skip-nx-cache --output-style=static
         env:
           NODE_ENV: production
-      - if: matrix.react == '19.2.3'
+      - if: matrix.react == '19.2.3' && matrix.browser == 'chromium'
         run: python scripts/demo-smoke.py

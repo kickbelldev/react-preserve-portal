@@ -6,13 +6,15 @@ import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const archive = resolve(process.argv[2] ?? '')
-const major = process.argv[3]
+const requested = process.argv[3]
+const react =
+  requested === '18' ? '18.3.1' : requested === '19' ? '19.2.3' : requested
 assert(
-  ['18', '19'].includes(major),
-  'Usage: node scripts/verify-package.mjs PACKAGE.tgz 18|19',
+  /^(18|19)\.\d+\.\d+$/.test(react ?? ''),
+  'Usage: node scripts/verify-package.mjs PACKAGE.tgz 18|19|EXACT_REACT_VERSION',
 )
+const major = react.split('.')[0]
 const directory = mkdtempSync(join(tmpdir(), 'preserve-portal-consumer-'))
-const react = major === '18' ? '18.3.1' : '19.2.3'
 const typescript = major === '18' ? '5.0.4' : '5.9.3'
 function run(command, args) {
   execFileSync(command, args, { cwd: directory, stdio: 'inherit' })
@@ -58,6 +60,17 @@ const invalidHost = <Portal.Host node="old">new</Portal.Host>
 void [children, legacy, slot, connected, disposed, invalidChildren, invalidHTML, invalidSlot, invalidHost]
 `,
   )
+  writeFileSync(
+    join(directory, 'consumer.cts'),
+    `
+import { createPortal } from '@charley-kim/react-preserve-portal'
+const Portal = createPortal({ id: 'commonjs-types', slots: ['main'] })
+const released: boolean = Portal.dispose()
+// @ts-expect-error Slot keys must remain checked in CommonJS consumers.
+Portal.Slot({ slotKey: 'missing' })
+void released
+`,
+  )
   run(process.execPath, [
     'node_modules/typescript/bin/tsc',
     '--noEmit',
@@ -72,6 +85,7 @@ void [children, legacy, slot, connected, disposed, invalidChildren, invalidHTML,
     '--jsx',
     'react-jsx',
     'consumer.tsx',
+    'consumer.cts',
   ])
   const { readFileSync } = await import('node:fs')
   writeFileSync(

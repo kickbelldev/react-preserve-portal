@@ -1,12 +1,12 @@
 ---
-title: Lifecycle fixes (unreleased)
-description: Upcoming improvements to DOM ownership, first attachment, hidden boundaries, and store disposal.
+title: Lifecycle and ownership
+description: DOM ownership, first attachment, hidden boundaries, and store disposal in 0.4.0.
 ---
 
-# Lifecycle fixes (unreleased)
+# Lifecycle and ownership
 
-::: warning Check your version
-These APIs and fixes are on **main and are not yet included in npm 0.3.0**. The examples below require a source build. The main guides and API reference describe the released 0.3.0 API.
+::: info Available since 0.4.0
+These APIs and lifecycle fixes are included in **0.4.0**. Upgrade from 0.3.x to use them. Review the [migration guide](../migration) for the stricter empty-Slot and same-document contracts.
 :::
 
 ## Slots are empty destinations

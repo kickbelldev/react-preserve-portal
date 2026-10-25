@@ -11,7 +11,7 @@ Choosing technology by responsibility keeps the API small. This review checked *
 
 `appendChild` removes and reinserts a node even when moving the same object. `moveBefore` moves it without disconnecting it, preserving state such as focus, iframe documents, CSS animations, and open popovers or modal dialogs.
 
-Version 0.3.0 automatically uses this path when supported, when **both the container and destination are connected and belong to the same document**. Otherwise it uses `appendChild`. The same guarantee cannot apply to containers already detached by hiding or route removal.
+Since 0.3.0, the library automatically uses this path when supported, when **both the container and destination are connected and belong to the same document**. Otherwise it uses `appendChild`. The same guarantee cannot apply to containers already detached by hiding or route removal.
 
 The MDN data reviewed records support in Chrome 133+ and Firefox 144+, with Safari support still absent. Check the actual environment:
 
@@ -62,11 +62,11 @@ Here, `setSlotKey` comes from `Player.usePortal()`. `flushSync` commits the Reac
 
 Popover does not change the React parent or DOM location. `Activity` does not move content between different DOM parents and cannot replace React 18 support. Its Effect cleanup policy also differs from this library's “effects keep running while hidden” behavior. Compose them deliberately.
 
-Guarded disposal and opt-in connected mounting are now implemented on main; see [unreleased lifecycle fixes](./lifecycle-safety). They are not available in npm 0.3.0.
+Guarded disposal and opt-in connected mounting are available in 0.4.0; see [lifecycle and ownership](./lifecycle-safety).
 
 ## Candidates for future work
 
-These are **design candidates, not APIs provided by 0.3.0**.
+These are **design candidates, not APIs provided by 0.4.0**.
 
 | Priority  | Candidate                                | Question to resolve first                                                                     |
 | --------- | ---------------------------------------- | --------------------------------------------------------------------------------------------- |
@@ -74,7 +74,7 @@ These are **design candidates, not APIs provided by 0.3.0**.
 | Medium    | Visibility / connection signals          | How do selection, registration, document connectivity, and actual visibility differ?          |
 | As needed | Selector subscriptions                   | Do measured workloads with many portals and frequent updates show a rendering bottleneck?     |
 
-There is currently no demonstrated need for a router, continuously running global observer, or animation engine as a core dependency. The upcoming connected-mount option observes only until first attachment. The small store and explicit Slot registration keep behavior predictable.
+There is currently no demonstrated need for a router, continuously running global observer, or animation engine as a core dependency. The connected-mount option observes only until first attachment. The small store and explicit Slot registration keep behavior predictable.
 
 ## Sources
 
