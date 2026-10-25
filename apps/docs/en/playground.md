@@ -29,7 +29,7 @@ The label at the top reports **browser support**, not the operation used for eve
 
 ## Move animation
 
-**Move animation (FLIP)** is on by default and needs no browser API. Before a move, the playground measures the card's position and size. After the move, it animates the same card element from the old position to the new one. This works because the portal moves the element instead of recreating it, and the video keeps playing while it slides. It runs in every browser.
+**Move animation (FLIP)** is on by default and is the library's [`<Host animate>`](./api#animate). It measures the on-screen position just before a move, then animates the same element from the old position to the new one. This works because the portal moves the element instead of recreating it, and the video keeps playing while it slides. Only transform and opacity change, so layout is not recalculated during the animation, and moving again mid-flight continues from where the content appears. It runs in every browser.
 
 View Transition is the browser's built-in transition effect and can be turned on only in supporting browsers. Only one of the two can be on at a time, and preservation requires neither. A reduced-motion preference disables the animation and video autoplay; enabling that preference also pauses a playing video immediately.
 

@@ -11,6 +11,14 @@ export interface CreatePortalOptions<
   slots: TSlots
 }
 
+/** Options for animating a Host's container between slots. */
+export interface PortalAnimation {
+  /** Milliseconds. Default 450 (half that to fade in from hidden). */
+  duration?: number
+  /** Any CSS easing. Default: a slight-overshoot cubic-bezier. */
+  easing?: string
+}
+
 /**
  * Keep Host mounted to preserve its children. Use children or the legacy node prop.
  */
@@ -18,6 +26,11 @@ export type HostProps<T extends keyof HTMLElementTagNameMap = 'div'> = {
   as?: T
   /** Delay the first content mount until the container is connected. */
   mountWhen?: 'immediate' | 'connected'
+  /**
+   * Animate the container from its old box when `setSlotKey` moves it.
+   * Uses transform/opacity only and respects reduced motion. Default false.
+   */
+  animate?: boolean | PortalAnimation
 } & (
   | { children: ReactNode; node?: never }
   | { node: ReactNode; children?: never }

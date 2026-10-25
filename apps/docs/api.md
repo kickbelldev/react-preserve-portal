@@ -32,16 +32,40 @@ export const Player = createPortal({ id: 'player', slots: ['main', 'mini'] })
 <Player.Host node={<VideoPlayer />} />
 ```
 
-| Prop        | 타입 / 기본값                                | 의미                                                                |
-| ----------- | -------------------------------------------- | ------------------------------------------------------------------- |
-| `children`  | `ReactNode`                                  | 보존할 콘텐츠. `node`와 둘 중 하나만 전달합니다.                    |
-| `node`      | `ReactNode`                                  | 이전 API와의 호환을 위한 콘텐츠 prop.                               |
-| `as`        | HTML 태그 / `'div'`                          | 컨테이너 태그. 최초 생성 시 결정되므로 마운트 중 변경하지 않습니다. |
-| `mountWhen` | `'immediate' \| 'connected'` / `'immediate'` | 즉시 마운트하거나 최초 문서 연결을 기다립니다.                      |
+| Prop        | 타입 / 기본값                                | 의미                                                                            |
+| ----------- | -------------------------------------------- | ------------------------------------------------------------------------------- |
+| `children`  | `ReactNode`                                  | 보존할 콘텐츠. `node`와 둘 중 하나만 전달합니다.                                |
+| `node`      | `ReactNode`                                  | 이전 API와의 호환을 위한 콘텐츠 prop.                                           |
+| `as`        | HTML 태그 / `'div'`                          | 컨테이너 태그. 최초 생성 시 결정되므로 마운트 중 변경하지 않습니다.             |
+| `mountWhen` | `'immediate' \| 'connected'` / `'immediate'` | 즉시 마운트하거나 최초 문서 연결을 기다립니다.                                  |
+| `animate`   | `boolean \| { duration, easing }` / `false`  | 슬롯을 옮길 때 이전 위치에서 새 위치로 애니메이션합니다. [아래](#animate) 참고. |
 
 `mountWhen="connected"`를 선택하면 최초 layout effect와 `autoFocus`는 연결 후 실행됩니다. 이후 이동하거나 숨겨도 콘텐츠를 다시 마운트하지 않습니다. 연결됐다는 사실이 가시성이나 0보다 큰 크기를 보장하지는 않습니다.
 
 Host는 일반 HTML 속성이나 ref를 전달하는 래퍼가 아닙니다. 스타일·이벤트·ARIA 속성은 콘텐츠나 Slot에 적용하세요. 서버에서는 `null`을 렌더링합니다.
+
+### 이동 애니메이션 {#animate}
+
+`animate`를 켜면 `setSlotKey`로 슬롯을 바꿀 때 Host가 컨테이너를 이전 위치에서 새 위치로 애니메이션합니다. 콘텐츠 종류와 관계없이 동작하고, 별도 라이브러리가 필요 없습니다.
+
+```tsx
+<Player.Host animate>
+  <VideoPlayer />
+</Player.Host>
+
+// 시간과 easing을 바꿀 수 있습니다.
+<Player.Host animate={{ duration: 300, easing: 'ease-out' }}>…</Player.Host>
+```
+
+성능을 위해 다음 원칙으로 동작합니다.
+
+- **transform과 opacity만 바꿉니다.** 브라우저의 Web Animations API로 실행되므로 컴포지터가 처리하고, 애니메이션 중에 레이아웃을 다시 계산하지 않습니다.
+- **이동마다 위치를 한 번씩만 잽니다.** `setSlotKey` 직전에 화면상의 위치를 기록하고, 옮긴 뒤 화면을 그리기 전에 새 위치를 한 번 잽니다.
+- **도중에 끊어도 자연스럽습니다.** 애니메이션 중에 다시 옮기면 지금 화면에 보이는 위치에서 이어서 움직입니다.
+- **꺼져 있으면 비용이 없습니다.** `animate`가 없으면 위치를 재지 않습니다.
+- **모션 줄이기 설정을 따릅니다.** `prefers-reduced-motion: reduce`이면 애니메이션하지 않습니다.
+
+기본 easing은 `linear()`로 만든 스프링 곡선이며, 지원하지 않는 브라우저에서는 일반 곡선을 씁니다. 숨김(`null`)에서 다시 나타날 때는 짧게 페이드인합니다. 숨겨진 부모 안에 있어 크기가 0인 위치에서는 애니메이션하지 않습니다. 크기가 다른 슬롯 사이에서는 글자와 영상이 찌그러지지 않도록 가로·세로를 같은 비율로 키우거나 줄입니다.
 
 ## `Slot`
 
@@ -99,6 +123,8 @@ const {
 
 액션 함수 참조는 ID별로 안정적이고, 반환 객체도 상태가 바뀌지 않으면 같은 객체입니다. 그래서 반환값 전체를 Effect 의존성에 넣어도 됩니다. 다른 ID의 변경은 이 포털의 구독자에게 알리지 않습니다. 이 훅은 선택한 ID의 전체 스냅샷을 구독합니다.
 
+콘텐츠가 실제로 목적지에 붙어 있는지는 `slotKey !== null && targets.has(slotKey)`로 알 수 있습니다. 선택만 되고 Slot이 아직 없거나 숨긴 상태면 `false`입니다. 숨겨진 영상을 멈출 때 쓸 수 있습니다.
+
 ### 외부 DOM 목적지 등록 {#external-targets}
 
 기존 DOM 요소를 목적지로 써야 할 때 사용합니다. 일반적인 React 화면에서는 `Slot`이 등록과 해제를 대신 처리하므로 이 메서드를 직접 부를 필요가 없습니다. 아래 `Player`는 위에서 정의한 팩토리입니다.
@@ -135,4 +161,4 @@ Host·Slot·훅 소유자·구독자·수동 목적지가 남아 있으면 `fals
 
 ## 공개 타입
 
-`CreatePortalOptions`, `HostProps`, `SlotProps`, `UsePortalReturn`, `TypedPortal`을 패키지 루트에서 `import type`으로 가져올 수 있습니다. 내부 저장소·컴포넌트 경로는 공개 API가 아닙니다.
+`CreatePortalOptions`, `HostProps`, `PortalAnimation`, `SlotProps`, `UsePortalReturn`, `TypedPortal`을 패키지 루트에서 `import type`으로 가져올 수 있습니다. 내부 저장소·컴포넌트 경로는 공개 API가 아닙니다.

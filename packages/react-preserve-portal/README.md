@@ -119,12 +119,18 @@ and development builds warn when more than one is mounted.
 | `node`      | Compatible alternative to `children`; pass only one content prop                        |
 | `as`        | Container HTML tag, default `'div'`; fixed for the mounted Host                         |
 | `mountWhen` | `'immediate'` (default) or `'connected'`; delay the first content mount until connected |
+| `animate`   | `true` or `{ duration, easing }`; animate moves between slots (default off)             |
 
 Existing `<Panel.Host node={<Editor />} />` calls remain supported. Use
 `mountWhen="connected"` for initial layout measurements or `autoFocus`. After the
 first mount, moving or hiding preserves the same content; connection alone does
 not guarantee visibility or a nonzero size. Outer Suspense/Activity boundaries
 keep the Host container connected, while React controls visibility and Effects.
+
+With `animate`, a `setSlotKey` move animates the container from its old box to
+the new one (FLIP). It changes only `transform` and `opacity` through the Web
+Animations API, measures once per move, continues smoothly when interrupted,
+and respects `prefers-reduced-motion`. Without `animate`, nothing is measured.
 
 ### `Slot`
 
