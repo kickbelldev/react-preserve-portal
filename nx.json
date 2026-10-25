@@ -31,7 +31,7 @@
     }
   },
   "namedInputs": {
-    "default": ["{projectRoot}/**/*"],
+    "default": ["{projectRoot}/**/*", "{workspaceRoot}/assets/media/**"],
     "production": [
       "default",
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",

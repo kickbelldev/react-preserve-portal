@@ -49,8 +49,8 @@ disconnects passive effects when hiding it.
 
 After building the demo, `python scripts/demo-smoke.py` serves the production
 output and tests persistent main/mini Slots, real media events, close/reopen,
-and rejected play requests. It uses a local canvas stream and blocks remote
-video downloads. CI includes the same native and fallback routing checks.
+and rejected play requests. It loads the shared, self-hosted timecode clip and checks source replacement.
+CI runs native and fallback routing checks on Chromium, Firefox, and WebKit.
 
 Lint does not rewrite source. To autofix intentionally, pass `--fix=true` to the
 Nx lint task. In a container that cannot create Nx plugin sockets, use
@@ -74,8 +74,10 @@ The production build writes `dist/apps/docs` and fails on broken internal page
 links. The site base is `/react-preserve-portal/`; use VitePress-relative links so
 assets, search, and navigation work under that subpath. Validate both locales,
 mobile layouts, local search, dark mode, and preservation in the real playground.
-With Python Playwright and Chromium installed, `python scripts/docs-smoke.py`
-checks these flows against the preview. Pass a site base URL to check a deployment.
+With Python Playwright and the selected browser installed,
+`python scripts/docs-smoke.py --local` starts a preview and checks these flows,
+real video playback, play rejection/retry, and live reduced-motion changes.
+Set `PORTAL_BROWSER` as above; pass a site base URL to check a deployment.
 Set `CHROMIUM_PATH` if the browser is not at `/usr/bin/chromium`. Restart the preview
 after rebuilding so its static-file cache matches the new assets.
 

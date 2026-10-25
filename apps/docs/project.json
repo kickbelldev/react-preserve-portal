@@ -23,7 +23,7 @@
       "continuous": true,
       "dependsOn": [],
       "options": {
-        "command": "vitepress preview . --host 127.0.0.1 --port 4173",
+        "command": "vitepress preview .",
         "cwd": "apps/docs"
       }
     },
