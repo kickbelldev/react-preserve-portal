@@ -3,9 +3,21 @@
 [![npm version](https://badgen.net/npm/v/@charley-kim/react-preserve-portal)](https://www.npmjs.com/package/@charley-kim/react-preserve-portal)
 [![license](https://badgen.net/npm/license/@charley-kim/react-preserve-portal)](https://github.com/kickbelldev/react-preserve-portal/blob/main/LICENSE)
 
-Move React content between DOM destinations without recreating its DOM nodes or
-remounting its React subtree. Useful for persistent video players, editors,
-canvases, and other stateful UI.
+Move an existing DOM instance, such as a playing `<video>`, a loaded `<iframe>`,
+a WebGL canvas, or an editor, to another place in your layout without
+recreating it. The same DOM nodes are reused, so the React subtree inside is not
+remounted either: component state and effects carry on.
+
+**Why not lift state into a store?** React state can be restored after a remount.
+State held by DOM instances cannot: a video's loaded data and decoder, an
+iframe's document, a WebGL context, DOM built by map or editor libraries, and
+the caret, selection, and scroll position of text being edited. Recreating the
+node reloads or interrupts them. Moving the same node is the only way to keep
+them.
+
+**Why not React's `createPortal`?** Changing a portal's target to another node
+makes React unmount and remount its content. This library always renders into
+one container and moves that container node between destinations instead.
 
 ```bash
 npm install @charley-kim/react-preserve-portal
@@ -66,14 +78,16 @@ it mounts is supported; content attaches when the destination appears.
 ## How preservation works
 
 React always renders into the **same unmanaged container**. The library moves
-that container between `Slot` elements. React's portal destination never changes,
-so moving it does not remount the React subtree.
+that container node between `Slot` elements. The DOM nodes are never recreated,
+and because React's portal destination never changes, the React subtree is never
+remounted either.
 
 ```text
 Host → React portal → stable container → currently selected Slot
 ```
 
-- DOM identity, React state, and effects survive slot changes while `Host` stays mounted.
+- The same DOM nodes (and therefore React state and effects) survive slot changes
+  while `Host` stays mounted.
 - Hiding content or temporarily removing a destination detaches the container;
   the React subtree remains mounted. Effects and timers continue running.
 - Unmounting `Host`, changing its React key, or replacing its content with a

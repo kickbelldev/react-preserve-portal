@@ -72,7 +72,7 @@ function sidebar(en: boolean) {
 export default defineConfig({
   title: 'React Preserve Portal',
   description:
-    'React 콘텐츠를 다시 마운트하지 않고 이동하세요. DOM과 상태를 보존하는 타입 안전한 포털.',
+    '재생 중인 영상, iframe, 캔버스 같은 DOM 인스턴스를 다시 만들지 않고 옮기세요. React 상태와 Effect도 그대로 이어지는 타입 안전한 포털.',
   base,
   outDir: '../../dist/apps/docs',
   cleanUrls: false,
@@ -189,7 +189,7 @@ export default defineConfig({
       label: 'English',
       lang: 'en',
       description:
-        'Move React content without remounting. Preserve DOM identity and component state with a small, typed portal API.',
+        'Move DOM instances such as a playing video, an iframe, or a canvas without recreating them. React state and effects carry on. A small, typed portal API.',
       themeConfig: {
         nav: [
           { text: 'Guide', link: '/en/guide/introduction' },
