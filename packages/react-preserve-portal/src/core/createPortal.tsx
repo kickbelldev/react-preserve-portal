@@ -1,3 +1,5 @@
+import { forwardRef, type Ref } from 'react'
+
 import { InternalPortalHost } from '../components/InternalPortalHost'
 import { InternalPortalSlot } from '../components/InternalPortalSlot'
 import { usePortal } from '../model/usePortal'
@@ -26,11 +28,13 @@ export function createPortal<
     return <InternalPortalHost portalId={id} {...props} />
   }
 
-  function Slot<T extends keyof HTMLElementTagNameMap = 'div'>(
-    props: SlotProps<TSlot, T>,
+  // forwardRef keeps `ref` working on React 18, where it is not a prop.
+  const Slot = forwardRef(function Slot(
+    props: Omit<SlotProps<TSlot>, 'ref'>,
+    ref: Ref<HTMLDivElement>,
   ) {
-    return <InternalPortalSlot portalId={id} {...props} />
-  }
+    return <InternalPortalSlot portalId={id} {...props} userRef={ref} />
+  }) as unknown as TypedPortal<TId, TSlot>['Slot']
 
   const useTypedPortal = (): UsePortalReturn<TSlot> => {
     const result = usePortal(id)

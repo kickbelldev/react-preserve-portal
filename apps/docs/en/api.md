@@ -58,11 +58,12 @@ Host does not forward general HTML attributes or refs. Put styling, events, and 
 | --------------- | ----------------------------- | ----------------------------------------------------------- |
 | `slotKey`       | A declared slot key           | Identifies this destination.                                |
 | `as`            | HTML tag / `'div'`            | Destination tag. Use an element that can contain children.  |
+| `ref`           | `Ref` for the tag             | Receives the destination element, e.g. for measurement.     |
 | HTML attributes | Tag-specific `HTMLAttributes` | `className`, `id`, events, ARIA, data attributes, and more. |
 
 Slots register on mount and unregister on unmount; hidden boundaries can also detach their refs. Host renders the content. `children` and `dangerouslySetInnerHTML` are rejected by types and at runtime. Render empty-state descriptions as siblings and never overwrite Slot content through external DOM code.
 
-Slot does not expose a user `ref` prop. If you need to own the destination element, use [external DOM registration](#register-an-external-dom-destination) below.
+Slot's `ref` receives the destination element on both React 18 and 19. An inline ref function that changes every render does not re-register the destination. To use an element that React does not render, use [external DOM registration](#register-an-external-dom-destination) below.
 
 If destinations with the same key overlap, **the last registration wins**. Cleaning up an older Slot does not unregister its replacement. If the latest destination is removed first, the content returns to the most recent destination that is still registered, so overlapping Slots during an exit animation do not drop the content.
 
@@ -96,7 +97,7 @@ const {
 
 `slotKey` is a selection, not a connection or visibility signal: its target can be missing or hidden. `setSlotKey(null)` clears the selection; `reset()` also clears `returnPath`. Neither resets the content's React state.
 
-Action references are stable per ID. Changes to another ID do not notify this portal's subscribers. The hook subscribes to the entire snapshot for its chosen ID.
+Action references are stable per ID, and the returned object stays the same until the state changes, so the whole result is safe in effect dependencies. Changes to another ID do not notify this portal's subscribers. The hook subscribes to the entire snapshot for its chosen ID.
 
 ### Register an external DOM destination
 

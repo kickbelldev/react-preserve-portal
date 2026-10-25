@@ -67,12 +67,15 @@ for (const [format, library] of [
       null,
       h(Portal.Host, { mountWhen: 'connected' }, h(Counter)),
       h(Portal.Slot, { slotKey: 'main', id: 'main' }),
-      h(Portal.Slot, { slotKey: 'mini', id: 'mini' }),
+      h(Portal.Slot, { slotKey: 'mini', id: 'mini', ref: miniRef }),
     )
   }
+  // Slot forwards refs on React 18, where ref is not a regular prop.
+  const miniRef = React.createRef()
   const root = createRoot(document.getElementById('root'))
   await act(() => root.render(h(React.StrictMode, null, h(App))))
   assert.equal(Portal.dispose(), false)
+  assert.equal(miniRef.current, document.getElementById('mini'))
   assert.equal(document.querySelector('button'), null)
   await act(() => actions.setSlotKey('main'))
   const button = document.querySelector('button')
@@ -91,10 +94,11 @@ for (const [format, library] of [
   assert.equal(button.textContent, '1')
   await act(() => root.unmount())
   assert.equal(button.isConnected, false)
+  assert.equal(miniRef.current, null)
   assert.equal(Portal.dispose(), true)
   assert.throws(() => actions.setSlotKey('main'), /disposed/)
   console.log(
-    `PASS: ${format} SSR, StrictMode, connected mount, DOM identity, React state, reset, unmount and disposal`,
+    `PASS: ${format} SSR, StrictMode, connected mount, Slot ref, DOM identity, React state, reset, unmount and disposal`,
   )
 }
 dom.window.close()
