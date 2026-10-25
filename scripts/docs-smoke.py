@@ -7,6 +7,7 @@ Or pass the deployed base URL (including /react-preserve-portal/).
 
 from contextlib import nullcontext
 import os
+import re
 import sys
 from playwright.sync_api import expect, sync_playwright
 from browser_support import launch_browser, preview, wait_for_video
@@ -159,7 +160,7 @@ with server as base, sync_playwright() as p:
     expect(page.locator('.VPLocalSearchBox')).to_contain_text('How preservation works')
     page.keyboard.press('Escape')
     page.locator('.VPNavBarAppearance button').click()
-    expect(page.locator('html')).to_have_class('dark')
+    expect(page.locator('html')).to_have_class(re.compile(r'(^|\s)dark(\s|$)'))  # VitePress adds 'mac' on macOS
     page.get_by_role('link', name='Playground', exact=True).first.click()
     expect(page.get_by_test_id('preserved-input')).to_be_visible()
     check_metadata(page, 'en/playground.html')

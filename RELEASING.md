@@ -13,13 +13,13 @@ A package maintainer must configure **Trusted Publisher → GitHub Actions** on
 [@charley-kim/react-preserve-portal's settings](https://www.npmjs.com/package/@charley-kim/react-preserve-portal/access).
 This cannot be established by committing a workflow alone.
 
-| npm field | Value |
-| --- | --- |
-| Organization or user | `kickbelldev` |
-| Repository | `react-preserve-portal` |
-| Workflow filename | `npm-publish.yml` |
-| Environment name | Leave empty |
-| Allowed actions | Enable direct **`npm publish`** |
+| npm field            | Value                           |
+| -------------------- | ------------------------------- |
+| Organization or user | `kickbelldev`                   |
+| Repository           | `react-preserve-portal`         |
+| Workflow filename    | `npm-publish.yml`               |
+| Environment name     | Leave empty                     |
+| Allowed actions      | Enable direct **`npm publish`** |
 
 The workflow does not need permission to manage dist-tags independently. New
 connections default to staged publishing in npm's current UI, so explicitly

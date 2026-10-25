@@ -13,12 +13,12 @@ Rendering one `<VideoPlayer />` in the main view and another in a mini player cr
 
 With this library, render the content **once in a Host** and define its possible locations with **Slots**. Moving the content moves its container instead of creating another instance.
 
-| API | Your responsibility |
-| --- | --- |
-| `createPortal()` | Define a portal ID and its slot names outside component render. |
-| `Player.Host` | Render the content to preserve. Usually use one Host per portal. |
-| `Player.Slot` | Register a destination such as `main` or `mini`. Keep the Slot empty. |
-| `Player.usePortal()` | Read the selection and change it with `setSlotKey()`. |
+| API                  | Your responsibility                                                   |
+| -------------------- | --------------------------------------------------------------------- |
+| `createPortal()`     | Define a portal ID and its slot names outside component render.       |
+| `Player.Host`        | Render the content to preserve. Usually use one Host per portal.      |
+| `Player.Slot`        | Register a destination such as `main` or `mini`. Keep the Slot empty. |
+| `Player.usePortal()` | Read the selection and change it with `setSlotKey()`.                 |
 
 Two Slots are two destinations for one portal. They do not create two players.
 

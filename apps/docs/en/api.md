@@ -86,12 +86,12 @@ const {
 | Member                         | Type                                | Behavior                                                                             |
 | ------------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------ |
 | `slotKey`                      | Slot key or `null`                  | Current selection; initially `null`.                                                 |
-| `setSlotKey(key)`              | `(key: SlotKey \| null) => void`                     | Select a destination, or hide with `null`.                                           |
+| `setSlotKey(key)`              | `(key: SlotKey \| null) => void`    | Select a destination, or hide with `null`.                                           |
 | `returnPath`                   | `string \| null`                    | Optional router metadata; initially `null`.                                          |
 | `setReturnPath(path)`          | `(string \| null) => void`          | Set metadata without changing the URL.                                               |
 | `targets`                      | `ReadonlyMap<SlotKey, HTMLElement>` | Snapshot of registered destinations. Do not mutate it.                               |
 | `registerTarget(key, element)` | Returns `() => void`                | Register a manual destination and return an ownership-safe cleanup.                  |
-| `unregisterTarget(key)`        | `(key: SlotKey) => void`                     | Remove every registration for a key.                                                  |
+| `unregisterTarget(key)`        | `(key: SlotKey) => void`            | Remove every registration for a key.                                                 |
 | `reset()`                      | `() => void`                        | Hide content and clear `returnPath`. Keep destinations and content's internal state. |
 
 `slotKey` is a selection, not a connection or visibility signal: its target can be missing or hidden. `setSlotKey(null)` clears the selection; `reset()` also clears `returnPath`. Neither resets the content's React state.

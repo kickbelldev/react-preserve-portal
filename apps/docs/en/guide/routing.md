@@ -26,7 +26,8 @@ type Props = {
 }
 
 export function PlayerLayout({ pathname, navigate, children }: Props) {
-  const { slotKey, setSlotKey, returnPath, setReturnPath, reset } = Player.usePortal()
+  const { slotKey, setSlotKey, returnPath, setReturnPath, reset } =
+    Player.usePortal()
   const watching = pathname.startsWith('/watch/')
   const wasWatching = useRef(false)
   const video = useRef<HTMLVideoElement>(null)
@@ -48,7 +49,13 @@ export function PlayerLayout({ pathname, navigate, children }: Props) {
   return (
     <>
       <Player.Host mountWhen="connected">
-        <video ref={video} src="/video.mp4" controls playsInline style={{ width: '100%' }} />
+        <video
+          ref={video}
+          src="/video.mp4"
+          controls
+          playsInline
+          style={{ width: '100%' }}
+        />
       </Player.Host>
       {children}
       <section hidden={!watching} aria-label="Full player">
@@ -57,10 +64,17 @@ export function PlayerLayout({ pathname, navigate, children }: Props) {
       <aside
         hidden={slotKey !== 'mini'}
         aria-label="Mini player"
-        style={{ position: 'fixed', right: 16, bottom: 16, width: 'min(320px, 90vw)' }}
+        style={{
+          position: 'fixed',
+          right: 16,
+          bottom: 16,
+          width: 'min(320px, 90vw)',
+        }}
       >
         <Player.Slot slotKey="mini" />
-        {returnPath && <button onClick={() => navigate(returnPath)}>Return to video</button>}
+        {returnPath && (
+          <button onClick={() => navigate(returnPath)}>Return to video</button>
+        )}
         <button onClick={reset}>Close player</button>
       </aside>
     </>
@@ -70,13 +84,13 @@ export function PlayerLayout({ pathname, navigate, children }: Props) {
 
 ## Check each transition
 
-| Action | Result |
-| --- | --- |
-| Open the home route first | No Slot is selected; the player is hidden. |
-| Visit `/watch/1` | Select `main` and remember `/watch/1` as `returnPath`. |
-| Navigate from `/watch/1` to another route | Select `mini`; the same video moves into the mini player. |
+| Action                                                    | Result                                                      |
+| --------------------------------------------------------- | ----------------------------------------------------------- |
+| Open the home route first                                 | No Slot is selected; the player is hidden.                  |
+| Visit `/watch/1`                                          | Select `main` and remember `/watch/1` as `returnPath`.      |
+| Navigate from `/watch/1` to another route                 | Select `mini`; the same video moves into the mini player.   |
 | Close the mini player, then visit another non-watch route | Keep it hidden. Merely changing a route does not reopen it. |
-| Visit a watch route again | Show the main player; playback is controlled by the user. |
+| Visit a watch route again                                 | Show the main player; playback is controlled by the user.   |
 
 `returnPath` is metadata only. The return button calls your router's `navigate`; neither setting `returnPath` nor calling `reset()` changes the URL.
 

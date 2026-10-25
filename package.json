@@ -13,7 +13,8 @@
     "test": "nx run-many --target=test --all",
     "release": "nx release",
     "lint": "nx run-many --target=lint --all",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "size": "node scripts/check-size.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

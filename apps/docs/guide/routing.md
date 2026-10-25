@@ -26,7 +26,8 @@ type Props = {
 }
 
 export function PlayerLayout({ pathname, navigate, children }: Props) {
-  const { slotKey, setSlotKey, returnPath, setReturnPath, reset } = Player.usePortal()
+  const { slotKey, setSlotKey, returnPath, setReturnPath, reset } =
+    Player.usePortal()
   const watching = pathname.startsWith('/watch/')
   const wasWatching = useRef(false)
   const video = useRef<HTMLVideoElement>(null)
@@ -48,7 +49,13 @@ export function PlayerLayout({ pathname, navigate, children }: Props) {
   return (
     <>
       <Player.Host mountWhen="connected">
-        <video ref={video} src="/video.mp4" controls playsInline style={{ width: '100%' }} />
+        <video
+          ref={video}
+          src="/video.mp4"
+          controls
+          playsInline
+          style={{ width: '100%' }}
+        />
       </Player.Host>
       {children}
       <section hidden={!watching} aria-label="메인 플레이어">
@@ -57,10 +64,19 @@ export function PlayerLayout({ pathname, navigate, children }: Props) {
       <aside
         hidden={slotKey !== 'mini'}
         aria-label="미니플레이어"
-        style={{ position: 'fixed', right: 16, bottom: 16, width: 'min(320px, 90vw)' }}
+        style={{
+          position: 'fixed',
+          right: 16,
+          bottom: 16,
+          width: 'min(320px, 90vw)',
+        }}
       >
         <Player.Slot slotKey="mini" />
-        {returnPath && <button onClick={() => navigate(returnPath)}>영상으로 돌아가기</button>}
+        {returnPath && (
+          <button onClick={() => navigate(returnPath)}>
+            영상으로 돌아가기
+          </button>
+        )}
         <button onClick={reset}>플레이어 닫기</button>
       </aside>
     </>
@@ -70,13 +86,13 @@ export function PlayerLayout({ pathname, navigate, children }: Props) {
 
 ## 전환별 결과 확인
 
-| 동작 | 결과 |
-| --- | --- |
-| 처음 홈에 방문 | 선택한 Slot이 없어 플레이어를 숨깁니다. |
-| `/watch/1`에 방문 | `main`을 선택하고 `returnPath`에 `/watch/1`을 저장합니다. |
-| `/watch/1`에서 다른 페이지로 이동 | `mini`를 선택해 같은 영상을 미니플레이어로 옮깁니다. |
+| 동작                                           | 결과                                                        |
+| ---------------------------------------------- | ----------------------------------------------------------- |
+| 처음 홈에 방문                                 | 선택한 Slot이 없어 플레이어를 숨깁니다.                     |
+| `/watch/1`에 방문                              | `main`을 선택하고 `returnPath`에 `/watch/1`을 저장합니다.   |
+| `/watch/1`에서 다른 페이지로 이동              | `mini`를 선택해 같은 영상을 미니플레이어로 옮깁니다.        |
 | 미니플레이어를 닫은 뒤 다른 일반 페이지로 이동 | 숨긴 상태를 유지합니다. 경로 변경만으로 다시 열지 않습니다. |
-| 시청 경로에 다시 방문 | 메인 플레이어를 보여줍니다. 재생은 사용자가 조작합니다. |
+| 시청 경로에 다시 방문                          | 메인 플레이어를 보여줍니다. 재생은 사용자가 조작합니다.     |
 
 `returnPath`는 메타데이터입니다. 돌아가기 버튼이 앱의 `navigate`를 호출하며, `setReturnPath()`나 `reset()` 자체는 URL을 바꾸지 않습니다.
 

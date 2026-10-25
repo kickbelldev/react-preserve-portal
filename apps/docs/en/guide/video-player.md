@@ -58,7 +58,12 @@ export default function App() {
       <aside
         hidden={slotKey !== 'mini'}
         aria-label="Mini player"
-        style={{ position: 'fixed', right: 16, bottom: 16, width: 'min(320px, 90vw)' }}
+        style={{
+          position: 'fixed',
+          right: 16,
+          bottom: 16,
+          width: 'min(320px, 90vw)',
+        }}
       >
         <Player.Slot slotKey="mini" />
         <button onClick={() => setSlotKey('main')}>Return to main</button>

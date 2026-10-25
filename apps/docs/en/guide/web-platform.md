@@ -9,14 +9,14 @@ First decide whether the DOM really needs to move. Changing a visual layout and 
 
 ## Choose by task
 
-| Task | Start with |
-| --- | --- |
-| Change position or ordering in a responsive layout | CSS Grid / Flex; check whether a DOM move is needed at all |
-| Display a menu or popover above other elements | Native Popover API and CSS positioning |
-| Open a modal with focus management | `<dialog>` and `showModal()` |
-| Hide and restore tabs in the same location | `Activity` in React 19.2 or later |
-| Render content into another, fixed DOM location | React DOM's `createPortal` |
-| Move the same component and DOM between destinations | React Preserve Portal |
+| Task                                                 | Start with                                                 |
+| ---------------------------------------------------- | ---------------------------------------------------------- |
+| Change position or ordering in a responsive layout   | CSS Grid / Flex; check whether a DOM move is needed at all |
+| Display a menu or popover above other elements       | Native Popover API and CSS positioning                     |
+| Open a modal with focus management                   | `<dialog>` and `showModal()`                               |
+| Hide and restore tabs in the same location           | `Activity` in React 19.2 or later                          |
+| Render content into another, fixed DOM location      | React DOM's `createPortal`                                 |
+| Move the same component and DOM between destinations | React Preserve Portal                                      |
 
 When reordering with CSS, also check keyboard and screen-reader reading order. Popover and dialog do not themselves move React components between destinations.
 
