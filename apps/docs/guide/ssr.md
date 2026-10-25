@@ -11,7 +11,7 @@ description: 서버 HTML, 클라이언트 경계와 하이드레이션 시점의
 
 React Server Component 프레임워크에서는 팩토리와 포털을 사용하는 코드를 `'use client'` 경계 뒤에 둡니다.
 
-```tsx
+```tsx [ClientPanel.tsx]
 'use client'
 
 import { useEffect } from 'react'

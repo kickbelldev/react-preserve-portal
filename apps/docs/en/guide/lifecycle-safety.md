@@ -1,13 +1,13 @@
 ---
 title: Lifecycle and ownership
-description: DOM ownership, first attachment, hidden boundaries, and store disposal in 0.4.0.
+description: Rules for first measurements, Suspense and Activity, manual destinations, and disposing portal IDs.
 ---
 
 # Lifecycle and ownership
 
-::: info Available since 0.4.0
-These APIs are available since **0.4.0**. Final cleanup of hidden Hosts in React 19.0/19.1 is fixed in **0.4.1**. Upgrade from 0.3.x to use them. Review the [migration guide](../migration) for the stricter empty-Slot and same-document contracts.
-:::
+Use this guide when integrating initial measurements, Suspense/Activity boundaries, manually owned DOM targets, or dynamic portal IDs. For ordinary movement, the [quick start](./quick-start) is sufficient.
+
+The basic rule is that React owns the content **inside** Host's container, while the library owns the container's placement. Keep Slots empty so the two do not compete for their children.
 
 ## Slots are empty destinations
 
@@ -27,13 +27,13 @@ Document child-list changes are observed only while waiting for that first conne
 
 ## Hidden boundaries versus deletion
 
-The Host container is now removed on final deletion. When an outer Suspense/Activity boundary cleans up layout effects, the container stays connected; React still controls content visibility and Effects. This is verified with React 18.0, 18.2, 18.3, 19.0, 19.1 and 19.2; Activity requires React 19.2 or later.
+If the destination Slot stays registered and connected, Effect cleanup by Suspense/Activity around Host does not by itself remove the container. React controls visibility and Effects according to the boundary; actual Host deletion removes the container. Activity requires React 19.2 or later. The hidden-Host deletion fix for React 19.0/19.1 is included in 0.4.1.
 
 `setSlotKey(null)` and `reset()` still **detach** the container. A Slot that disappears or unregisters under a hidden boundary is no longer a destination. Use persistent Slots for iframes that must remain connected. React state, DOM objects, browser documents, and Effects have distinct lifetimes.
 
 ## Registration ownership and disposal
 
-Re-registering the same element under the same key creates a new registration. Old cleanup cannot remove the latest registration. The snapshot still changes only when the destination element changes, avoiding additional renders. The `targets` type is now `ReadonlyMap`.
+Re-registering the same element under the same key creates a new registration. Old cleanup cannot remove the latest registration. The snapshot still changes only when the destination element changes, avoiding additional renders. `targets` is a read-only snapshot.
 
 ```tsx
 // After actually unmounting every React owner of this ID:

@@ -1,6 +1,6 @@
 ---
 title: Migrating to 0.4
-description: Compatibility changes for 0.4.0, with earlier 0.2.x migration notes.
+description: Upgrade through the 0.4.1 patch and 0.4.0 compatibility changes from your installed version.
 ---
 
 # Migrating to 0.4
@@ -32,7 +32,7 @@ The default mount remains immediate. Choose `mountWhen="connected"` when initial
 
 Existing factories, slot keys, `node`, and hook methods remain available. Review the following behavior and type requirements.
 
-## JSX children
+### JSX children
 
 ```tsx
 // The 0.2.x syntax remains supported.
@@ -44,19 +44,19 @@ Existing factories, slot keys, `node`, and hook methods remain available. Review
 
 Do not supply both `node` and `children`. Slot-name literals infer without `as const`, and the published declarations require **TypeScript 5 or later**.
 
-## `reset()` keeps destinations
+### `reset()` keeps destinations
 
 Previously, `reset()` also cleared destination registrations. Version 0.3.0 **hides content and clears `returnPath`**, keeping mounted destinations registered. You can select a slot again immediately.
 
 If you used `reset()` to remove manual registrations, call the cleanup functions returned by `registerTarget()` instead.
 
-## Registration cleanup and SSR
+### Registration cleanup and SSR
 
 `registerTarget()` now returns a cleanup function. Existing code can ignore the return value, but returning it from an Effect protects newer registrations from stale cleanup.
 
 Host does not emit content during server rendering and mounts it after hydration. See the [SSR guide](./guide/ssr). React context and events still follow Host's React tree.
 
-## Moves and subscriptions
+### Moves and subscriptions
 
 Connected moves use `moveBefore` in supporting browsers, with `appendChild` as the fallback. Store subscriptions are isolated by portal ID, reducing notifications from unrelated portals.
 

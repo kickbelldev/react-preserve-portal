@@ -1,23 +1,34 @@
 ---
 title: Interactive playground
-description: Verify that the same DOM and React state survive slot changes and hiding.
+description: Move a note, counter and video to explore preserved state and hiding.
 ---
 
 # Interactive playground
 
-This example uses the actual library, one Host, and two Slots. Let the video play, edit the note and counter, then move between main and mini or hide and show the content.
+Edit the note, increment the counter, then select **Move to mini**. The same card moves into another Slot instead of creating a new player.
 
 <PortalPlayground />
 
-## What to check
+## Check input values and React state
 
-1. The video is a single `<video>` element. Connected moves using `moveBefore` can preserve playback. The `appendChild` fallback keeps the same element but may interrupt playback.
-2. The note is an uncontrolled input, not a value stored in React state. It stays on the same DOM node after a move.
-3. The counter uses React state. Changing slots does not reset it.
-4. `reset()` hides the portal. This example pauses video on hide. Selecting main restores the note and counter; press Play to resume the video.
-5. The move count lives in the card's own React state. It only grows because the card is never remounted.
-6. View Transition is an optional animation in supporting browsers. It and video autoplay are disabled when reduced motion is preferred. Enabling that preference also pauses a playing video immediately.
+The note is an uncontrolled input; the counter uses React state. Both values survive moving between main and mini. The card's move count is also local React state and increases when you select a different slot.
 
-The `moveBefore` / `appendChild` label indicates browser support. Even supporting browsers use `appendChild` for the initial attachment and after hiding, because the node is detached. Clicking the demo's buttons moves focus to those buttons, so this interaction is not a focus-preservation test.
+To copy a minimal version into your app, follow the [quick start](./guide/quick-start).
 
-Leaving this page unmounts the example's Host. A fresh instance on returning is expected. See the [playground.tsx source](https://github.com/kickbelldev/react-preserve-portal/blob/main/apps/docs/.vitepress/theme/playground.tsx).
+## Distinguish hiding from clearing state
+
+Select **Hide** or **reset()**, then **Move to main**. Your note and count return. `reset()` clears the selected slot and return path, not the content's internal state.
+
+This example pauses video when hidden. Press Play after showing it again to resume. Pausing is behavior implemented by the example; the portal's hide operation does not control media. The [video guide](./guide/video-player) includes a complete example.
+
+## Browser-dependent behavior
+
+The card uses the same `<video>` element. Connected Slot moves with `moveBefore` can preserve playback; `appendChild` fallback moves and hide/show can pause it.
+
+The label at the top reports **browser support**, not the operation used for every move. Even supporting browsers use `appendChild` for first attachment and return from hiding because the container is detached. Clicking a control moves focus to that control, so the click itself is not a focus-preservation test. See [how preservation works](./guide/preservation) for the conditions.
+
+## Enable transition animation
+
+View Transition is an optional animation in supporting browsers. Preservation does not require it. A reduced-motion preference disables the animation and video autoplay; enabling that preference also pauses a playing video immediately.
+
+Leaving this page unmounts Host, so a fresh instance on returning is expected. See [playground.tsx](https://github.com/kickbelldev/react-preserve-portal/blob/main/apps/docs/.vitepress/theme/playground.tsx) for the implementation.

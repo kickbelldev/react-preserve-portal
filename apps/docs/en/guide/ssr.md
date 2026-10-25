@@ -11,7 +11,7 @@ description: Understand server HTML, client boundaries, and when portal content 
 
 In React Server Component frameworks, put the factory and code using the portal behind a `'use client'` boundary.
 
-```tsx
+```tsx [ClientPanel.tsx]
 'use client'
 
 import { useEffect } from 'react'

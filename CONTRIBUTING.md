@@ -70,6 +70,10 @@ corepack pnpm docs:build
 corepack pnpm docs:preview
 ```
 
+Filename-labelled TSX blocks (for example `tsx [App.tsx]`) must be complete,
+copyable modules. The docs typecheck task compiles them against the public package
+in both locales; leave partial API fragments unlabelled and explain their inputs.
+
 The production build writes `dist/apps/docs` and fails on broken internal page
 links. The site base is `/react-preserve-portal/`; use VitePress-relative links so
 assets, search, and navigation work under that subpath. Validate both locales,

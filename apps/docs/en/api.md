@@ -1,11 +1,11 @@
 ---
 title: API reference
-description: Types, defaults, and behavior for createPortal, Host, Slot, and usePortal.
+description: Types, defaults, and behavior for createPortal, Host, Slot, usePortal, and dispose.
 ---
 
 # API reference
 
-This reference describes **0.4.0**. See [lifecycle and ownership](./guide/lifecycle-safety) for connected mounting, hidden boundaries and safe disposal.
+Define a portal with the factory, render its content in Host, then select a Slot to move it. If you are new to the library, try the complete [quick-start example](./guide/quick-start) first. Use this page to look up exact types and behavior.
 
 ## `createPortal({ id, slots })`
 
@@ -62,6 +62,8 @@ Host does not forward general HTML attributes or refs. Put styling, events, and 
 
 Slots register on mount and unregister on unmount; hidden boundaries can also detach their refs. Host renders the content. `children` and `dangerouslySetInnerHTML` are rejected by types and at runtime. Render empty-state descriptions as siblings and never overwrite Slot content through external DOM code.
 
+Slot does not expose a user `ref` prop. If you need to own the destination element, use [external DOM registration](#register-an-external-dom-destination) below.
+
 If destinations with the same key overlap, **the last registration wins**. Cleaning up an older Slot does not unregister its replacement. Removing the latest destination does not automatically restore an older registration.
 
 ## `usePortal()`
@@ -82,17 +84,21 @@ const {
 | Member                         | Type                                | Behavior                                                                             |
 | ------------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------ |
 | `slotKey`                      | Slot key or `null`                  | Current selection; initially `null`.                                                 |
-| `setSlotKey(key)`              | `(key) => void`                     | Select a destination, or hide with `null`.                                           |
+| `setSlotKey(key)`              | `(key: SlotKey \| null) => void`                     | Select a destination, or hide with `null`.                                           |
 | `returnPath`                   | `string \| null`                    | Optional router metadata; initially `null`.                                          |
 | `setReturnPath(path)`          | `(string \| null) => void`          | Set metadata without changing the URL.                                               |
 | `targets`                      | `ReadonlyMap<SlotKey, HTMLElement>` | Snapshot of registered destinations. Do not mutate it.                               |
 | `registerTarget(key, element)` | Returns `() => void`                | Register a manual destination and return an ownership-safe cleanup.                  |
-| `unregisterTarget(key)`        | `(key) => void`                     | Remove the current registration for a key.                                           |
+| `unregisterTarget(key)`        | `(key: SlotKey) => void`                     | Remove the current registration for a key.                                           |
 | `reset()`                      | `() => void`                        | Hide content and clear `returnPath`. Keep destinations and content's internal state. |
+
+`slotKey` is a selection, not a connection or visibility signal: its target can be missing or hidden. `setSlotKey(null)` clears the selection; `reset()` also clears `returnPath`. Neither resets the content's React state.
 
 Action references are stable per ID. Changes to another ID do not notify this portal's subscribers. The hook subscribes to the entire snapshot for its chosen ID.
 
 ### Register an external DOM destination
+
+Use this when the destination is an existing DOM element. For normal React layouts, `Slot` handles registration and cleanup for you. The `Player` below is the factory defined above.
 
 ```tsx
 import { useEffect } from 'react'
@@ -110,6 +116,8 @@ function ExternalTarget({ element }: { element: HTMLElement | null }) {
 Every registration has a distinct identity, even when reusing the same element. The returned cleanup only unregisters that registration if it is still current. Prefer it over a manual `unregisterTarget` call to avoid removing a newer destination. Destinations must be in Host's document and cannot be its container or descendants. The library rejects cross-document adoption and cyclic moves before changing the DOM.
 
 ## `dispose(): boolean`
+
+Use this for an unused portal ID when a feature is permanently removed or a long-lived app creates and retires dynamic portals. Hiding, moving, and normal route changes do not require it. The following sequence assumes you own the React root and any manual target registrations.
 
 ```tsx
 // After all React owners of this ID have unmounted:

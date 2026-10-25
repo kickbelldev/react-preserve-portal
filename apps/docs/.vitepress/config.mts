@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import { version } from '../../../packages/react-preserve-portal/package.json'
 
 const base = '/react-preserve-portal/'
 const origin = 'https://kickbelldev.github.io'
@@ -30,13 +31,17 @@ function sidebar(en: boolean) {
     {
       text: en ? 'Build with it' : '실전 가이드',
       items: [
+        {
+          text: en ? 'Video player' : '비디오 플레이어',
+          link: `${prefix}/guide/video-player`,
+        },
         { text: en ? 'Routing' : '라우팅', link: `${prefix}/guide/routing` },
         {
           text: en ? 'SSR & hydration' : 'SSR과 하이드레이션',
           link: `${prefix}/guide/ssr`,
         },
         {
-          text: en ? 'Modern Web APIs' : '최신 Web API와 대안',
+          text: en ? 'Browser APIs & alternatives' : '브라우저 API와 대안',
           link: `${prefix}/guide/web-platform`,
         },
         {
@@ -94,7 +99,7 @@ export default defineConfig({
           { text: 'API', link: '/api' },
           { text: '플레이그라운드', link: '/playground' },
           {
-            text: 'v0.4.1',
+            text: `v${version}`,
             link: 'https://www.npmjs.com/package/@charley-kim/react-preserve-portal',
           },
         ],
@@ -127,7 +132,7 @@ export default defineConfig({
           { text: 'API', link: '/en/api' },
           { text: 'Playground', link: '/en/playground' },
           {
-            text: 'v0.4.1',
+            text: `v${version}`,
             link: 'https://www.npmjs.com/package/@charley-kim/react-preserve-portal',
           },
         ],

@@ -1,10 +1,13 @@
 ---
-description: Install the library and build a complete example with a Host and two Slots.
+title: Quick start
+description: Install the package, then move one editor between two destinations in a complete React example.
 ---
 
 # Quick start
 
-## Install
+This example moves one input and counter between two locations. You can try preservation without a video file, router, or extra state library.
+
+## 1. Install
 
 ::: code-group
 
@@ -22,13 +25,13 @@ yarn add @charley-kim/react-preserve-portal
 
 :::
 
-Requires React and React DOM 18 or later. These docs describe the **0.4.0 API**.
+Use an existing React app with React and React DOM 18+. TypeScript users need TypeScript 5+.
 
-## Define and render a portal
+## 2. Add the example
 
-Call the factory **once, outside component render**. TypeScript infers literal slot names without `as const`.
+Paste this into your app's `App.tsx`. Define `Panel` outside the component so its Host and Slot component types remain stable.
 
-```tsx
+```tsx [App.tsx]
 import { useEffect, useState } from 'react'
 import { createPortal } from '@charley-kim/react-preserve-portal'
 
@@ -37,42 +40,50 @@ const Panel = createPortal({ id: 'editor', slots: ['main', 'mini'] })
 function Editor() {
   const [count, setCount] = useState(0)
   return (
-    <section>
-      <input defaultValue="A note that survives moves" aria-label="Note" />
-      <button onClick={() => setCount(count + 1)}>{count}</button>
-    </section>
+    <div>
+      <input aria-label="Note" defaultValue="Edit this before moving" />
+      <button onClick={() => setCount(count + 1)}>Count: {count}</button>
+    </div>
   )
 }
 
 export default function App() {
-  const { slotKey, setSlotKey } = Panel.usePortal()
+  const { setSlotKey } = Panel.usePortal()
   useEffect(() => setSlotKey('main'), [setSlotKey])
 
   return (
-    <>
-      <Panel.Host>
-        <Editor />
-      </Panel.Host>
-      <main>
-        <Panel.Slot slotKey="main" />
-      </main>
-      <aside>
-        <Panel.Slot slotKey="mini" />
-      </aside>
-      <button onClick={() => setSlotKey(slotKey === 'main' ? 'mini' : 'main')}>
-        Move
-      </button>
+    <main>
+      <Panel.Host><Editor /></Panel.Host>
+
+      <section>
+        <h2>Main view</h2>
+        <Panel.Slot slotKey="main" style={{ minHeight: 80 }} />
+      </section>
+      <section>
+        <h2>Mini view</h2>
+        <Panel.Slot slotKey="mini" style={{ minHeight: 80 }} />
+      </section>
+
+      <button onClick={() => setSlotKey('main')}>Show in main</button>
+      <button onClick={() => setSlotKey('mini')}>Show in mini</button>
       <button onClick={() => setSlotKey(null)}>Hide</button>
-    </>
+    </main>
   )
 }
 ```
 
-The initial `slotKey` is `null`. `Host` mounts its content into a detached container. Selecting a registered slot attaches that container to the page. You can select a slot before it exists; content attaches when that destination registers.
+## 3. Check the result
 
-## Two rules to keep in mind
+1. Edit the note and increment the counter in the main area.
+2. Select **Show in mini**. Both values should follow the content.
+3. Select **Hide**, then **Show in main**. The values should still be there.
 
-1. Keep `Host` mounted for as long as the state should survive. A shared layout is usually the right place when using a router.
-2. Use distinct IDs for independent portals. Identical IDs share state within the same loaded copy of the library.
+There is one `Editor` inside Host. Slots only define its destinations; they do not render copies. Headings and placeholders go beside Slots, not inside them.
 
-Try the [interactive playground](../playground), or continue to the [API reference](../api).
+## How the first selection works
+
+`slotKey` starts as `null`, so nothing is visible. The Effect selects `main` after mounting. With the default `mountWhen="immediate"`, the content can mount before its container connects to the document. Use `mountWhen="connected"` if the first layout measurement or autofocus needs a connected element.
+
+Selecting a Slot before it mounts is supported: content attaches when that destination registers. Keep Host mounted for as long as its content needs to survive. Give independent portals different IDs.
+
+Continue with [a video player](./video-player), [routing](./routing), or the [API reference](../api).
