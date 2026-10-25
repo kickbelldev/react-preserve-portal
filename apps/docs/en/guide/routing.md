@@ -1,32 +1,35 @@
 ---
-description: Keep a Host alive across routes and choose destinations from a shared layout.
+title: Routing
+description: Keep the player in a shared layout and select its destination from the current route.
 ---
 
 # Routing
 
-Place `Host` and **both Slots** in a shared layout that survives navigation. Hide the inactive destination with CSS instead of unmounting it. Route pages render headings and details, while the library remains independent of the router.
+Keep Host in a layout that survives route changes. Changing the route should select a Slot, not recreate the player. For a basic player without routing, start with [the video guide](./video-player).
 
-## Select a destination from the layout
+## Connect your router to a shared layout
 
-Pass `pathname` and `navigate` from your router. Define `Player` once in a separate module.
+The following component accepts `pathname`, `navigate`, and the active route's content as props. Obtain those values from your router and render `PlayerLayout` above the route content. For React Router, they can come from `useLocation().pathname`, `useNavigate()`, and an `<Outlet />`. **The library does not install or control a router.**
 
-```tsx
+The example treats `/watch/*` as the full-player route. Supply a video at `/video.mp4` or replace that URL; this example keeps one source across routes.
+
+```tsx [PlayerLayout.tsx]
 import { useEffect, useRef, type ReactNode } from 'react'
-import { Player } from './player-portal'
-import { VideoPlayer } from './VideoPlayer'
+import { createPortal } from '@charley-kim/react-preserve-portal'
 
-export function Layout({
-  pathname,
-  navigate,
-  children,
-}: {
+const Player = createPortal({ id: 'routed-player', slots: ['main', 'mini'] })
+
+type Props = {
   pathname: string
   navigate: (path: string) => void
   children: ReactNode
-}) {
-  const { slotKey, setSlotKey, returnPath, setReturnPath } = Player.usePortal()
+}
+
+export function PlayerLayout({ pathname, navigate, children }: Props) {
+  const { slotKey, setSlotKey, returnPath, setReturnPath, reset } = Player.usePortal()
   const watching = pathname.startsWith('/watch/')
   const wasWatching = useRef(false)
+  const video = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
     if (watching) {
@@ -38,30 +41,49 @@ export function Layout({
     wasWatching.current = watching
   }, [pathname, watching, setSlotKey, setReturnPath])
 
+  useEffect(() => {
+    if (slotKey === null) video.current?.pause()
+  }, [slotKey])
+
   return (
     <>
-      <Player.Host>
-        <VideoPlayer />
+      <Player.Host mountWhen="connected">
+        <video ref={video} src="/video.mp4" controls playsInline style={{ width: '100%' }} />
       </Player.Host>
       {children}
-      <section hidden={!watching}>
+      <section hidden={!watching} aria-label="Full player">
         <Player.Slot slotKey="main" />
       </section>
-      <aside hidden={slotKey !== 'mini'}>
+      <aside
+        hidden={slotKey !== 'mini'}
+        aria-label="Mini player"
+        style={{ position: 'fixed', right: 16, bottom: 16, width: 'min(320px, 90vw)' }}
+      >
         <Player.Slot slotKey="mini" />
-        {returnPath && (
-          <button onClick={() => navigate(returnPath)}>Return</button>
-        )}
+        {returnPath && <button onClick={() => navigate(returnPath)}>Return to video</button>}
+        <button onClick={reset}>Close player</button>
       </aside>
     </>
   )
 }
 ```
 
-`returnPath` is just string metadata. Your application owns navigation history, URL updates, and playback conditions. The example selects mini only after leaving a watch route, so it stays hidden on an initial home visit or after being closed. Call the media player's `pause()` before hiding it with `reset()`; the portal does not manage playback.
+## Check each transition
 
-## Route transitions and browser state
+| Action | Result |
+| --- | --- |
+| Open the home route first | No Slot is selected; the player is hidden. |
+| Visit `/watch/1` | Select `main` and remember `/watch/1` as `returnPath`. |
+| Navigate from `/watch/1` to another route | Select `mini`; the same video moves into the mini player. |
+| Close the mini player, then visit another non-watch route | Keep it hidden. Merely changing a route does not reopen it. |
+| Visit a watch route again | Show the main player; playback is controlled by the user. |
 
-If the source Slot disappears first, the container may be temporarily detached. React state survives, but the move no longer satisfies the conditions for browser-state preservation through `moveBefore`. Keeping both Slots mounted, as above, allows connected moves without coordinating source removal with the router. The repository demo uses this structure. Older browsers still use `appendChild`; DOM identity survives, but browser-managed state is not universally preserved.
+`returnPath` is metadata only. The return button calls your router's `navigate`; neither setting `returnPath` nor calling `reset()` changes the URL.
 
-Replacing the shared layout or keying Host by pathname remounts the content. Preservation does not survive full-page reloads or document navigation.
+## Keep destinations mounted when connection matters
+
+Both Slots stay mounted in this layout. `hidden` changes visibility, not DOM membership. Removing a route-local Slot can temporarily detach the content before the next route registers its destination. React state can survive that gap while Host remains mounted, but iframe documents and focus may not.
+
+Persistent Slots allow connected `moveBefore` moves in supporting browsers. They do not override browser media policies; playback can still pause, especially during hiding or fallback moves. The player keeps native controls available for resuming.
+
+If the shared layout itself unmounts, or Host gets `key={pathname}`, its content starts over. Full page navigation also creates a new document. See [preservation and lifetime](./preservation) for these boundaries.

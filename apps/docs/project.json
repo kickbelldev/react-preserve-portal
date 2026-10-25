@@ -7,7 +7,10 @@
       "executor": "nx:run-commands",
       "dependsOn": ["^build"],
       "outputs": ["{workspaceRoot}/dist/apps/docs"],
-      "options": { "command": "vitepress build .", "cwd": "apps/docs" }
+      "options": {
+        "command": "vitepress build .",
+        "cwd": "apps/docs"
+      }
     },
     "dev": {
       "executor": "nx:run-commands",
@@ -30,7 +33,13 @@
     "typecheck": {
       "executor": "nx:run-commands",
       "dependsOn": ["^build"],
-      "options": { "command": "tsc --noEmit -p apps/docs/tsconfig.json" }
+      "options": {
+        "commands": [
+          "tsc --noEmit -p apps/docs/tsconfig.json",
+          "node scripts/check-doc-examples.mjs"
+        ],
+        "parallel": false
+      }
     },
     "lint": {
       "executor": "@nx/eslint:lint",

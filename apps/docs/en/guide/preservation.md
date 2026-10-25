@@ -23,7 +23,9 @@ description: Understand React state, DOM identity, browser-managed state, and Ho
 
 ## Initial connection and hidden boundaries
 
-The default `mountWhen="immediate"` can first mount children in a detached container; initial measurements can be zero and `autoFocus` can fail. In 0.4.0, choose `mountWhen="connected"` to wait for the first document connection. Outer Suspense/Activity boundaries now keep Host containers connected until final deletion; React still controls visibility and Effects. Hiding/removing a Slot itself can unregister the destination and detach content. See [lifecycle and ownership](./lifecycle-safety) for these distinct lifetimes.
+The default `mountWhen="immediate"` can first mount children in a detached container; initial measurements can be zero and `autoFocus` can fail. Choose `mountWhen="connected"` to wait for the first document connection. If the destination Slot remains registered and connected, Effect cleanup by Suspense/Activity around Host does not by itself remove the container; React controls visibility and Effects. Hiding/removing a Slot itself can unregister the destination and detach content. See [lifecycle and ownership](./lifecycle-safety) for these distinct lifetimes.
+
+The table describes content that has already mounted. While `mountWhen="connected"` waits for its first connection, the children have not mounted yet.
 
 ## React tree versus DOM tree
 
@@ -35,7 +37,7 @@ Within one React root, context and synthetic events follow the tree containing `
 
 Prefer one Host per portal. Multiple Hosts render separate content while sharing the active slot state.
 
-Stores remain registered by ID for the lifetime of the module. `reset()` does not delete a store. Avoid generating unlimited IDs per render or per item. Use stable application-level IDs. Use [explicit disposal](./lifecycle-safety) after all owners and manual destinations have been released; it has been available since 0.4.0.
+Stores remain registered by ID for the lifetime of the module. `reset()` does not delete a store. Avoid generating unlimited IDs per render or per item. Use stable application-level IDs. Use [explicit disposal](./lifecycle-safety) after all owners and manual destinations have been released.
 
 ## Accessibility
 

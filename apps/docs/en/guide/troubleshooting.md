@@ -8,7 +8,16 @@ description: Diagnose missing content, state resets, focus loss, and iframe relo
 
 The initial `slotKey` is `null`. Check that you called `setSlotKey('main')` and mounted a Slot with that key. Selecting a missing destination leaves the content in a detached container.
 
-Use `targets.has(slotKey)` to check registration, and inspect whether that element is actually connected to the document. Check for `display: none` or zero dimensions on it and its ancestors. Manually moving the portal container in developer tools can put the DOM out of sync with library state.
+Check selection and registration separately. Guard the nullable `slotKey` before looking up its target:
+
+```tsx
+const { slotKey, targets } = Player.usePortal()
+const target = slotKey === null ? undefined : targets.get(slotKey)
+// No target means no destination is registered.
+// target?.isConnected indicates document connection.
+```
+
+Here, `Player` is the portal defined by your app. Connected elements can still be hidden by CSS. Check for `display: none` or zero dimensions on it and its ancestors. Manually moving the portal container in developer tools can put the DOM out of sync with library state.
 
 ## State resets during a move
 
@@ -23,11 +32,11 @@ Development Strict Mode may run additional Effect setup and cleanup. Distinguish
 
 DOM identity alone does not guarantee browser-managed state. Check `moveBefore` support, both elements' `isConnected` status before the move, and a shared `ownerDocument`. Removing the source Slot first or hiding content breaks the connected-move conditions.
 
-Cross-origin iframe content may prevent your application from inspecting its internal state. Test your actual supported browsers and player. See [modern Web APIs](./web-platform) for the conditions.
+Cross-origin iframe content may prevent your application from inspecting its internal state. Test your actual supported browsers and player. See [browser APIs and alternatives](./web-platform) for the conditions.
 
 ## Timers or media keep running while hidden
 
-This is expected: hiding is not a React unmount. Your content can observe `slotKey === null` and stop work as needed, or manage playback state separately. Remember that `slotKey !== null` does not mean the content is actually visible.
+Hiding through the portal does not unmount its React content. Your content can observe `slotKey === null` and stop work as needed, or manage playback state separately. Remember that `slotKey !== null` does not mean the content is actually visible. The [video guide](./video-player) includes a complete pause-on-close example.
 
 ## Show content again after `reset()`
 
@@ -39,7 +48,11 @@ Check for multiple destinations using the same portal ID and slot key. The last 
 
 ## Playback controls disagree with the video
 
-Treat native `play`, `pause`, and `ended` events as the source of playback state. Handle the promise returned by `play()`; autoplay policy, source changes, and network errors can reject it. Do not simply invert a boolean when the user clicks. Pause explicitly before closing, and ignore stale play results after source changes or unmounting. A detached video can be paused by the browser even when its DOM identity survives. The repository demo handles these paths and tests playback with a local canvas stream.
+Treat native `play`, `pause`, and `ended` events as the source of playback state. Handle the promise returned by `play()`; autoplay policy, source changes, and network errors can reject it. Do not simply invert a boolean when the user clicks. Pause explicitly before closing, and ignore stale play results after source changes or unmounting. A detached video can be paused by the browser even when its DOM identity survives. The live docs example uses MP4 and WebM files and handles retry after playback failure. The [video guide](./video-player) shows a simpler setup using native controls.
+
+## CommonJS types fail with NodeNext
+
+Check the installed library version. Version 0.4.1 supplies `.d.cts` declarations for the `require` export, fixing the mismatch in 0.4.0. Upgrade before adding local type workarounds. See [migration notes](../migration).
 
 ## Report a bug
 

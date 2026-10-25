@@ -1,40 +1,47 @@
 ---
-description: Learn when to use React Preserve Portal and how its three building blocks work.
+title: Introduction
+description: Use React Preserve Portal when one component needs to move between different places in the page.
 ---
 
 # Introduction
 
-**React Preserve Portal** moves React content between DOM locations without remounting it.
+React Preserve Portal **moves one React component between DOM locations**. Send a video from the main view to a mini player, or move an editor into another panel, while keeping the same DOM nodes and component state.
 
-A normal React portal recreates its content when its destination DOM node changes. This library keeps that destination container stable and moves the container itself. Component state, DOM references, and uncontrolled input values survive.
+## What problem does it solve?
+
+Rendering one `<VideoPlayer />` in the main view and another in a mini player creates two instances. Removing one and creating the other replaces both its local state and DOM nodes. Lifting state can restore values, but it does not keep the original video element, editor, or canvas alive.
+
+With this library, render the content **once in a Host** and define its possible locations with **Slots**. Moving the content moves its container instead of creating another instance.
+
+| API | Your responsibility |
+| --- | --- |
+| `createPortal()` | Define a portal ID and its slot names outside component render. |
+| `Player.Host` | Render the content to preserve. Usually use one Host per portal. |
+| `Player.Slot` | Register a destination such as `main` or `mini`. Keep the Slot empty. |
+| `Player.usePortal()` | Read the selection and change it with `setSlotKey()`. |
+
+Two Slots are two destinations for one portal. They do not create two players.
+
+## How is this different from React DOM's `createPortal`?
+
+React DOM's `createPortal(children, target)` renders into `target`. Passing a different DOM node as the target recreates the portal content.
+
+This library always passes the same container to React DOM. **React's rendering destination stays fixed; the container moves to another Slot.** Context and component state continue to follow the Host. See [how preservation works](./preservation) for details.
 
 ## When to use it
 
-- A media player that moves from a detail page to a compact player
-- An editor or canvas that moves between panels
-- A stateful widget that needs to survive route changes
+- A full player and a mini player need to share one video element.
+- An editor or canvas moves between panels without losing its internal state.
+- A widget needs to survive route changes while its display location changes.
 
-For an ordinary modal or tooltip, React's `createPortal`, native `dialog`, or the Popover API may be sufficient. For hiding and restoring tabs in the same location, consider React 19.2's `Activity`. See [modern Web APIs](./web-platform) for the tradeoffs.
+If CSS Grid or Flex can provide the layout, no DOM move is needed. Modals, popovers, and tabs in a fixed location may also have simpler solutions. See [browser APIs and alternatives](./web-platform) for a comparison by task.
 
-## Three building blocks
+## Before you start
 
-| Building block | Responsibility                                  |
-| -------------- | ----------------------------------------------- |
-| `Host`         | Mounts the content in the React tree.           |
-| `Slot`         | Registers a DOM destination for that content.   |
-| `usePortal()`  | Selects the active slot and reads portal state. |
+Unmounting Host or changing the content's `key` ends preservation, following React's normal rules. Keep Host in a shared layout when it must survive routing.
 
-```text
-Host (stable position in the React tree)
-  └─ React portal → same container
-                       ├─ moves to the main Slot
-                       └─ moves to the mini Slot
-```
+Keeping the same DOM node does not guarantee focus, iframe or playback state in every browser. See the [preservation table](./preservation#what-survives) for connected moves and hiding.
 
-## Requirements
+Requires React and React DOM **18 or later**, and **TypeScript 5 or later** if you use TypeScript. ESM and CommonJS are supported.
 
-React and React DOM **18 or later**; TypeScript **5 or later**. ESM and CommonJS are available. There are no runtime dependencies beyond the React peer dependencies.
-
-Preserving React state and DOM identity is different from preserving all browser-managed state. Iframes, focus, and animations depend on the move mechanism and browser. Read [how preservation works](./preservation) for the precise guarantees.
-
-[Get started →](./quick-start)
+Follow the [quick start](./quick-start) to install the package and build your first portal.

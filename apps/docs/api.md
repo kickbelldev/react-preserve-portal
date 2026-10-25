@@ -1,11 +1,11 @@
 ---
 title: API 레퍼런스
-description: createPortal, Host, Slot, usePortal의 타입, 기본값과 동작을 설명합니다.
+description: createPortal, Host, Slot, usePortal, dispose의 타입과 동작을 찾아봅니다.
 ---
 
 # API 레퍼런스
 
-이 레퍼런스는 **0.4.0** 기준입니다. 연결 후 마운트, 숨김 경계와 안전한 해제는 [수명과 소유권](./guide/lifecycle-safety)을 참고하세요.
+팩토리로 포털을 정의하고, Host에 콘텐츠를 넣고, Slot을 선택해 이동합니다. 처음 사용한다면 [빠르게 시작하기](./guide/quick-start)의 전체 예제를 먼저 실행해 보세요. 이 페이지는 각 API의 타입과 정확한 동작을 찾아볼 때 사용합니다.
 
 ## `createPortal({ id, slots })`
 
@@ -62,6 +62,8 @@ Host는 일반 HTML 속성이나 ref를 전달하는 래퍼가 아닙니다. 스
 
 Slot은 마운트 시 등록되고 언마운트 시 해제되며 숨김 경계에서도 ref가 해제될 수 있습니다. 콘텐츠는 Host가 렌더링합니다. `children`과 `dangerouslySetInnerHTML`은 타입과 런타임에서 거부합니다. 빈 상태나 설명은 형제 요소로 배치하고 외부 DOM 코드로 Slot 내용을 덮어쓰지 마세요.
 
+Slot은 사용자 `ref`를 전달하는 API를 제공하지 않습니다. 목적지 요소를 직접 관리해야 한다면 아래의 [외부 DOM 등록](#external-targets)을 사용하세요.
+
 같은 키의 Slot이 겹치면 **마지막 등록이 우선**합니다. 오래된 Slot의 정리는 새 Slot을 해제하지 않습니다. 새 Slot을 제거해도 이전 등록을 자동 복원하지는 않습니다.
 
 ## `usePortal()`
@@ -82,17 +84,21 @@ const {
 | 멤버                           | 타입                                | 동작                                                                         |
 | ------------------------------ | ----------------------------------- | ---------------------------------------------------------------------------- |
 | `slotKey`                      | 슬롯 키 또는 `null`                 | 현재 선택. 초기값 `null`.                                                    |
-| `setSlotKey(key)`              | `(key) => void`                     | 목적지를 선택합니다. `null`은 숨기기.                                        |
+| `setSlotKey(key)`              | `(key: SlotKey \| null) => void`                     | 목적지를 선택합니다. `null`은 숨기기.                                        |
 | `returnPath`                   | `string \| null`                    | 라우터를 위한 선택적 메타데이터. 초기값 `null`.                              |
 | `setReturnPath(path)`          | `(string \| null) => void`          | 메타데이터만 변경하며 URL은 바꾸지 않습니다.                                 |
 | `targets`                      | `ReadonlyMap<SlotKey, HTMLElement>` | 등록된 목적지 스냅샷. 직접 수정하지 마세요.                                  |
 | `registerTarget(key, element)` | `() => void` 반환                   | 수동 목적지를 등록하고 안전한 정리 함수를 반환합니다.                        |
-| `unregisterTarget(key)`        | `(key) => void`                     | 해당 키의 현재 등록을 해제합니다.                                            |
+| `unregisterTarget(key)`        | `(key: SlotKey) => void`                     | 해당 키의 현재 등록을 해제합니다.                                            |
 | `reset()`                      | `() => void`                        | 숨기고 `returnPath`를 비웁니다. 목적지 등록과 콘텐츠 내부 상태는 유지합니다. |
+
+`slotKey`는 선택한 이름이며 실제 연결·가시성을 뜻하지 않습니다. 목적지가 아직 없거나 숨겨져 있을 수 있습니다. `setSlotKey(null)`은 선택만 비우고, `reset()`은 `returnPath`도 비웁니다. 둘 다 콘텐츠의 React 상태를 초기화하지 않습니다.
 
 액션 함수 참조는 ID별로 안정적입니다. 다른 ID의 변경은 이 포털의 구독자에게 알리지 않습니다. 이 훅은 선택한 ID의 전체 스냅샷을 구독합니다.
 
-### 외부 DOM 목적지 등록
+### 외부 DOM 목적지 등록 {#external-targets}
+
+기존 DOM 요소를 목적지로 써야 할 때 사용합니다. 일반적인 React 화면에서는 `Slot`이 등록과 해제를 대신 처리하므로 이 메서드를 직접 부를 필요가 없습니다. 아래 `Player`는 위에서 정의한 팩토리입니다.
 
 ```tsx
 import { useEffect } from 'react'
@@ -110,6 +116,8 @@ function ExternalTarget({ element }: { element: HTMLElement | null }) {
 같은 요소를 다시 등록해도 각 등록에는 고유한 소유권이 있습니다. 반환된 정리 함수는 해당 등록이 아직 현재 소유자일 때만 해제합니다. 뒤에 등록된 대체 요소를 실수로 지우지 않도록 수동 `unregisterTarget`보다 이 방식을 권장합니다. 목적지는 Host와 같은 문서에 있어야 하며 포털 컨테이너 자신이나 자손일 수 없습니다. 다른 문서로의 adoption과 순환 이동은 DOM을 변경하기 전에 라이브러리가 거부합니다.
 
 ## `dispose(): boolean`
+
+기능을 완전히 제거하거나 오래 실행되는 앱에서 동적 포털 ID를 더 이상 쓰지 않을 때 사용합니다. 숨김·이동·일반적인 라우트 변경에는 필요하지 않습니다. 아래 순서는 앱이 React root와 수동 목적지 등록을 직접 관리하는 경우입니다.
 
 ```tsx
 // 해당 ID의 모든 React 소유자를 언마운트한 뒤:

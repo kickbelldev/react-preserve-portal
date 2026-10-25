@@ -1,86 +1,71 @@
 ---
-title: Modern Web APIs and alternatives
-description: Compare moveBefore, View Transition, Popover, and Activity to choose a simpler implementation.
+title: Browser APIs and alternatives
+description: Choose CSS, React portals, moveBefore, View Transition or Activity for the behavior you need.
 ---
 
-# Modern Web APIs and alternatives
+# Browser APIs and alternatives
 
-Choosing technology by responsibility keeps the API small. This review checked **official documentation and MDN compatibility data on 2026-10-23**. Browser support changes; detect features instead of browser versions.
+First decide whether the DOM really needs to move. Changing a visual layout and moving a live component to a different parent element need different tools.
 
-## `Element.moveBefore`: already in the core
+## Choose by task
 
-`appendChild` removes and reinserts a node even when moving the same object. `moveBefore` moves it without disconnecting it, preserving state such as focus, iframe documents, CSS animations, and open popovers or modal dialogs.
+| Task | Start with |
+| --- | --- |
+| Change position or ordering in a responsive layout | CSS Grid / Flex; check whether a DOM move is needed at all |
+| Display a menu or popover above other elements | Native Popover API and CSS positioning |
+| Open a modal with focus management | `<dialog>` and `showModal()` |
+| Hide and restore tabs in the same location | `Activity` in React 19.2 or later |
+| Render content into another, fixed DOM location | React DOM's `createPortal` |
+| Move the same component and DOM between destinations | React Preserve Portal |
 
-Since 0.3.0, the library automatically uses this path when supported, when **both the container and destination are connected and belong to the same document**. Otherwise it uses `appendChild`. The same guarantee cannot apply to containers already detached by hiding or route removal.
+When reordering with CSS, also check keyboard and screen-reader reading order. Popover and dialog do not themselves move React components between destinations.
 
-The MDN data reviewed records support in Chrome 133+ and Firefox 144+, with Safari support still absent. Check the actual environment:
+## How the library uses `moveBefore`
+
+If the container and destination are connected to the same document and the destination supports `moveBefore`, the library uses it automatically. You do not need to call it yourself. Other valid moves use `appendChild`; cross-document destinations are rejected.
 
 ```ts
-const supportsStatePreservingMove =
-  'moveBefore' in Element.prototype &&
-  typeof Element.prototype.moveBefore === 'function'
+const supportsMoveBefore = typeof Element.prototype.moveBefore === 'function'
 ```
 
-Distinguish native `<video>` / `<audio>` playback state from players embedded in iframes. MDN describes native media playback state as surviving removal and reinsertion. That is not a blanket guarantee for iframe document recreation, player-library behavior, or detachment during routing.
+Check the [MDN compatibility table](https://developer.mozilla.org/en-US/docs/Web/API/Element/moveBefore#browser_compatibility) and the actual runtime. Even supporting browsers need the `appendChild` path to attach an already detached element, including first display and return from hiding.
 
-For custom elements, also review `connectedMoveCallback()`. It lets the element implementation avoid unnecessary initialization and cleanup during a state-preserving move.
+`moveBefore` is designed to preserve browser-managed state such as focus, iframe documents and animations during connected moves. A video file, a player inside an iframe, and initialization performed by your application each have their own behavior. Keeping a DOM node does not establish uninterrupted playback for every media integration. The [video guide](./video-player) explains the playback policy your app controls.
 
-## View Transition: optional animation
+## Animate a move
 
-View Transition animates the visual change between snapshots. It does not preserve components or DOM. It fits as an application-level enhancement on top of a move.
+View Transition animates the old and new views. The portal preserves component state, so calling `setSlotKey()` without an animation still moves the content.
+
+This optional helper is intended for an event handler such as a button click. Pass the `setSlotKey` action from `Player.usePortal()` as its argument.
 
 ```tsx
 import { flushSync } from 'react-dom'
 
-function moveToMini() {
+export function moveToMini(setSlotKey: (slot: 'mini') => void) {
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
   if (!document.startViewTransition || reduceMotion) {
     setSlotKey('mini')
     return
   }
-
   const transition = document.startViewTransition(() => {
     flushSync(() => setSlotKey('mini'))
   })
-  // The slot update still applies if the animation is skipped.
   void transition.ready.catch(() => {})
 }
 ```
 
-Here, `setSlotKey` comes from `Player.usePortal()`. `flushSync` commits the React update before the browser takes its next snapshot, inside an event handler. Ordinary slot changes do not need it. Keep `view-transition-name` values unique on the page. You can enable this enhancement in the [playground](../playground).
+Use `flushSync` here to commit the update before the transition snapshot; ordinary moves do not need it. Skipping the animation still applies the selection, and a reduced-motion preference prevents starting an animation. Try the View Transition switch in the [live example](../playground).
 
-## Choose the simpler path
+## Combining with Activity
 
-| Requirement                                  | Consider first                   | Relationship to this library                                    |
-| -------------------------------------------- | -------------------------------- | --------------------------------------------------------------- |
-| Menu or tooltip escaping overflow clipping   | Native Popover + CSS positioning | Can use the top layer without physically reparenting DOM        |
-| Modal and focus management                   | `<dialog>` with `showModal()`    | An ordinary modal may need no portal library                    |
-| Hide and restore tabs in the same place      | React 19.2 `Activity`            | Preserves state and DOM, but cleans up Effects while hidden     |
-| Visual rearrangement for responsive layouts  | CSS Grid/Flex                    | May remove the need to move DOM; consider reading and tab order |
-| Physically move DOM and preserve React state | Preserve Portal                  | Stable container + `moveBefore` / `appendChild`                 |
-| Overlay with no preservation requirement     | React DOM `createPortal`         | A smaller solution may be enough                                |
+React 19.2's `Activity` hides UI in place, preserves its state and DOM, and cleans up Effects. It does not move content between different DOM parents.
 
-Popover does not change the React parent or DOM location. `Activity` does not move content between different DOM parents and cannot replace React 18 support. Its Effect cleanup policy also differs from this library's “effects keep running while hidden” behavior. Compose them deliberately.
+The portal's `setSlotKey(null)` detaches the container while keeping the React content mounted. The two forms of hiding have different connection and Effect behavior. If you combine them, see [lifecycle and ownership](./lifecycle-safety) before deciding which Hosts and Slots belong inside Activity.
 
-Guarded disposal and opt-in connected mounting are available in 0.4.0; see [lifecycle and ownership](./lifecycle-safety).
-
-## Candidates for future work
-
-These are **design candidates, not APIs provided by 0.4.0**.
-
-| Priority  | Candidate                                | Question to resolve first                                                                     |
-| --------- | ---------------------------------------- | --------------------------------------------------------------------------------------------- |
-| High      | Hide content in a connected parking area | Must iframe documents survive? What are the focus, accessibility, media, and Effect policies? |
-| Medium    | Visibility / connection signals          | How do selection, registration, document connectivity, and actual visibility differ?          |
-| As needed | Selector subscriptions                   | Do measured workloads with many portals and frequent updates show a rendering bottleneck?     |
-
-There is currently no demonstrated need for a router, continuously running global observer, or animation engine as a core dependency. The connected-mount option observes only until first attachment. The small store and explicit Slot registration keep behavior predictable.
-
-## Sources
+## References
 
 - [MDN: Element.moveBefore](https://developer.mozilla.org/en-US/docs/Web/API/Element/moveBefore)
-- [MDN browser compatibility source](https://github.com/mdn/browser-compat-data/blob/main/api/Element.json)
 - [MDN: startViewTransition](https://developer.mozilla.org/en-US/docs/Web/API/Document/startViewTransition)
 - [MDN: Popover API](https://developer.mozilla.org/en-US/docs/Web/API/Popover_API)
 - [React: Activity](https://react.dev/reference/react/Activity)
-- [React: changing a portal destination](https://react.dev/reference/react-dom/createPortal#parameters)
+- [React: createPortal](https://react.dev/reference/react-dom/createPortal)
