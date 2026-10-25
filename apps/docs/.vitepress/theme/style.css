@@ -282,7 +282,6 @@
 
 /* Preserved card */
 .demo-editor {
-  transform-origin: top left;
   overflow: hidden;
   border: 1px solid var(--vp-c-divider);
   border-radius: 12px;

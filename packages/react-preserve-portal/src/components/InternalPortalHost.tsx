@@ -1,6 +1,7 @@
 import {
   useEffect,
   useLayoutEffect,
+  useRef,
   useState,
   useSyncExternalStore,
 } from 'react'
@@ -9,6 +10,7 @@ import { createPortal } from 'react-dom'
 import type { HostProps } from '../core/types'
 import { DEFAULT_PORTAL_ID, getPortalStore } from '../model/store'
 import { usePortal } from '../model/usePortal'
+import { animateMove, measureMoveStart, type MoveStart } from '../model/animate'
 import { useCommittedEffect } from '../model/useCommittedEffect'
 import { warnOnce } from '../model/warn'
 
@@ -25,6 +27,7 @@ function ClientPortalHost<T extends keyof HTMLElementTagNameMap = 'div'>({
   children,
   as: container = 'div' as T,
   mountWhen = 'immediate',
+  animate = false,
 }: InternalPortalHostProps<T>) {
   const [unmanagedNode] = useState(() => document.createElement(container))
   const [hasMounted, setHasMounted] = useState(mountWhen === 'immediate')
@@ -34,6 +37,18 @@ function ClientPortalHost<T extends keyof HTMLElementTagNameMap = 'div'>({
 
   // Passive, so Hosts hidden by Activity do not count as duplicates.
   useEffect(() => store.retainHost(), [store])
+
+  // Measure only when animating: record where the container is on screen
+  // just before a slot change, then animate from there after the move.
+  const moveStart = useRef<MoveStart>(null)
+  const running = useRef<Animation | null>(null)
+  const animated = animate !== false
+  useEffect(() => {
+    if (!animated) return
+    return store.onBeforeSlotChange(() => {
+      moveStart.current = measureMoveStart(unmanagedNode)
+    })
+  }, [store, animated, unmanagedNode])
 
   useEffect(() => {
     if (
@@ -59,7 +74,10 @@ function ClientPortalHost<T extends keyof HTMLElementTagNameMap = 'div'>({
         'A portal cannot move into its own container or descendants.',
       )
     }
+    const start = moveStart.current
+    moveStart.current = null
     if (!target) {
+      running.current?.cancel()
       unmanagedNode.remove()
     } else if (unmanagedNode.parentNode !== target) {
       // moveBefore preserves browser-managed state for connected DOM moves.
@@ -81,8 +99,13 @@ function ClientPortalHost<T extends keyof HTMLElementTagNameMap = 'div'>({
       } else {
         target.appendChild(unmanagedNode)
       }
+      if (animate !== false) {
+        // Cancel first so the end box is measured without the old transform.
+        running.current?.cancel()
+        running.current = animateMove(unmanagedNode, start, animate)
+      }
     }
-  }, [target, unmanagedNode])
+  }, [target, unmanagedNode, animate])
 
   useLayoutEffect(() => {
     if (hasMounted) return

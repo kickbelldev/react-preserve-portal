@@ -252,7 +252,6 @@ function Playground({ ko }: { ko: boolean }) {
   const { slotKey, setSlotKey, reset } = Demo.usePortal()
   // FLIP is the default; View Transition is the browser-native alternative.
   const [animation, setAnimation] = useState<'flip' | 'view' | 'none'>('flip')
-  const section = useRef<HTMLElement>(null)
   const nativeMove =
     'moveBefore' in Element.prototype &&
     typeof Element.prototype.moveBefore === 'function'
@@ -268,40 +267,6 @@ function Playground({ ko }: { ko: boolean }) {
     return reset
   }, [setSlotKey, reset])
 
-  // FLIP: measure the card, move it, then animate the same element from its
-  // old box to the new one. This works because the portal keeps the element.
-  function flipMove(key: 'main' | 'mini' | null) {
-    const findCard = () =>
-      section.current?.querySelector<HTMLElement>('.demo-editor') ?? null
-    const before = findCard()
-    const first = before?.isConnected ? before.getBoundingClientRect() : null
-    flushSync(() => setSlotKey(key))
-    const card = findCard()
-    if (!card?.isConnected) return
-    const last = card.getBoundingClientRect()
-    if (first) {
-      if (first.left === last.left && first.top === last.top) return
-      card.animate(
-        [
-          {
-            transform: `translate(${first.left - last.left}px, ${first.top - last.top}px) scale(${first.width / last.width})`,
-          },
-          { transform: 'none' },
-        ],
-        { duration: 450, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' },
-      )
-    } else {
-      // Showing hidden content: there is no previous box, so fade it in.
-      card.animate(
-        [
-          { opacity: 0, transform: 'scale(0.96)' },
-          { opacity: 1, transform: 'none' },
-        ],
-        { duration: 250, easing: 'ease-out' },
-      )
-    }
-  }
-
   function move(key: 'main' | 'mini' | null) {
     if (reducedMotion) {
       setSlotKey(key)
@@ -311,8 +276,6 @@ function Playground({ ko }: { ko: boolean }) {
         flushSync(() => setSlotKey(key)),
       )
       void transition.ready.catch(() => {})
-    } else if (animation === 'flip') {
-      flipMove(key)
     } else {
       setSlotKey(key)
     }
@@ -322,7 +285,6 @@ function Playground({ ko }: { ko: boolean }) {
 
   return (
     <section
-      ref={section}
       aria-label={ko ? '포털 상태 보존 예제' : 'Portal preservation example'}
     >
       <div className="demo-toolbar">
@@ -349,7 +311,8 @@ function Playground({ ko }: { ko: boolean }) {
               : 'appendChild fallback'}
         </span>
       </div>
-      <Demo.Host mountWhen="connected">
+      {/* The library animates the container on setSlotKey (FLIP). */}
+      <Demo.Host mountWhen="connected" animate={animation === 'flip'}>
         <PreservedCard ko={ko} autoPlay={!reducedMotion} />
       </Demo.Host>
       <div className="demo-destinations">

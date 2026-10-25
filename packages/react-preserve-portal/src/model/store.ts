@@ -46,6 +46,8 @@ function createPortalStore(portalId: string) {
   }
   let state = initialState
   const listeners = new Set<() => void>()
+  // Called synchronously before slotKey changes, while the old layout exists.
+  const beforeSlotChange = new Set<() => void>()
   // Each key keeps a stack so removing the newest Slot reveals the previous one.
   const registrations = new Map<string, Registration[]>()
   let owners = 0
@@ -147,7 +149,15 @@ function createPortalStore(portalId: string) {
       assertLive()
       if (process.env.NODE_ENV !== 'production' && slotKey !== null)
         checkSlotKey(portalId, slotKey, 'setSlotKey')
-      if (state.slotKey !== slotKey) update({ ...state, slotKey })
+      if (state.slotKey === slotKey) return
+      beforeSlotChange.forEach((listener) => listener())
+      update({ ...state, slotKey })
+    },
+    onBeforeSlotChange(listener: () => void) {
+      beforeSlotChange.add(listener)
+      return () => {
+        beforeSlotChange.delete(listener)
+      }
     },
     setReturnPath(returnPath: string | null) {
       assertLive()

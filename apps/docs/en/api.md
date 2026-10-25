@@ -32,16 +32,40 @@ Calling the factory during render creates new Host and Slot component types, cau
 <Player.Host node={<VideoPlayer />} />
 ```
 
-| Prop        | Type / default                               | Meaning                                                              |
-| ----------- | -------------------------------------------- | -------------------------------------------------------------------- |
-| `children`  | `ReactNode`                                  | Content to preserve. Supply either `children` or `node`.             |
-| `node`      | `ReactNode`                                  | Content prop retained for compatibility.                             |
-| `as`        | HTML tag / `'div'`                           | Container tag, chosen at creation. Keep it stable while mounted.     |
-| `mountWhen` | `'immediate' \| 'connected'` / `'immediate'` | Mount content immediately or wait for the first document connection. |
+| Prop        | Type / default                               | Meaning                                                                              |
+| ----------- | -------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `children`  | `ReactNode`                                  | Content to preserve. Supply either `children` or `node`.                             |
+| `node`      | `ReactNode`                                  | Content prop retained for compatibility.                                             |
+| `as`        | HTML tag / `'div'`                           | Container tag, chosen at creation. Keep it stable while mounted.                     |
+| `mountWhen` | `'immediate' \| 'connected'` / `'immediate'` | Mount content immediately or wait for the first document connection.                 |
+| `animate`   | `boolean \| { duration, easing }` / `false`  | Animate from the old position to the new one on slot changes. See [below](#animate). |
 
 With `mountWhen="connected"`, initial layout effects and `autoFocus` run after connection. Later moves or hiding do not remount content. Connection does not guarantee visibility or a nonzero size.
 
 Host does not forward general HTML attributes or refs. Put styling, events, and ARIA attributes on your content or Slot. Host renders `null` on the server.
+
+### Move animation {#animate}
+
+With `animate`, the Host animates its container from the old position to the new one when `setSlotKey` changes the slot. It works for any content and needs no extra library.
+
+```tsx
+<Player.Host animate>
+  <VideoPlayer />
+</Player.Host>
+
+// Duration and easing are configurable.
+<Player.Host animate={{ duration: 300, easing: 'ease-out' }}>…</Player.Host>
+```
+
+It follows these rules to stay fast:
+
+- **Only transform and opacity change.** The animation runs through the Web Animations API, so the compositor handles it and layout is not recalculated while it plays.
+- **One measurement per move.** The on-screen box is recorded just before `setSlotKey`, and the new box is measured once after the move, before the browser paints.
+- **Interruptible.** Moving again mid-animation continues from where the content currently appears.
+- **Free when off.** Without `animate`, nothing is measured.
+- **Respects reduced motion.** With `prefers-reduced-motion: reduce`, nothing animates.
+
+The default easing is a spring curve built with `linear()`, with a regular curve in browsers that lack it. Content that reappears after hiding (`null`) fades in briefly. Moves from a zero-size box (inside a hidden parent) are not animated. Between slots of different sizes, the content scales uniformly so text and video are not distorted.
 
 ## `Slot`
 
@@ -99,6 +123,8 @@ const {
 
 Action references are stable per ID, and the returned object stays the same until the state changes, so the whole result is safe in effect dependencies. Changes to another ID do not notify this portal's subscribers. The hook subscribes to the entire snapshot for its chosen ID.
 
+To know whether content is actually in a destination, use `slotKey !== null && targets.has(slotKey)`. It is `false` while hidden or while the selected Slot is not mounted yet, which is handy for pausing a hidden video.
+
 ### Register an external DOM destination
 
 Use this when the destination is an existing DOM element. For normal React layouts, `Slot` handles registration and cleanup for you. The `Player` below is the factory defined above.
@@ -135,4 +161,4 @@ Call this after ownership ends, never during render or while mounting/transferri
 
 ## Public types
 
-Import `CreatePortalOptions`, `HostProps`, `SlotProps`, `UsePortalReturn`, and `TypedPortal` with `import type` from the package root. Internal store and component paths are not public API.
+Import `CreatePortalOptions`, `HostProps`, `PortalAnimation`, `SlotProps`, `UsePortalReturn`, and `TypedPortal` with `import type` from the package root. Internal store and component paths are not public API.

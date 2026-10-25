@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Add `Host animate`: FLIP-animate the container between slots with transform/opacity only (Web Animations API), one measurement per move, interruptible, spring easing via `linear()`, and reduced-motion support. Off by default with no measurement cost.
 - When the newest Slot (or manual registration) for a key is removed, return the content to the most recent registration that is still mounted instead of hiding it. Overlapping Slots during exit animations no longer drop the content.
 - Fall back to `appendChild` if `Element.moveBefore` throws for a connected move.
 - Accept a `ref` on `Slot` (React 18 and 19). Inline ref functions do not re-register the destination.
