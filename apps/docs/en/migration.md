@@ -1,20 +1,9 @@
 ---
 title: Migrating to 0.4
-description: Upgrade through the 0.4.1 patch and 0.4.0 compatibility changes from your installed version.
+description: What to change in your code when upgrading to 0.4 from 0.3.x or 0.2.x.
 ---
 
 # Migrating to 0.4
-
-## From 0.4.0 to 0.4.1
-
-This patch fixes compatibility bugs without changing the API: CommonJS
-TypeScript NodeNext declarations and final cleanup when deleting a suspended
-Host in React 19.0/19.1. The `require` export selects the new `.d.cts` declaration
-automatically. Upgrade the package without changing application code.
-
-Consumer checks cover React 18.0.0, 18.2.0, 18.3.1, 19.0.0, 19.1.0 and 19.2.3.
-React 18.3.1 and 19.2.3 also run on Chromium, Firefox and WebKit; Activity is
-checked on 19.2.3. Engine coverage does not establish support for every Safari/iOS device.
 
 ## From 0.3.x to 0.4.0
 
