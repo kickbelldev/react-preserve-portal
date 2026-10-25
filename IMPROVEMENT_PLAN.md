@@ -8,8 +8,8 @@
 | 항목 | 결과 |
 | --- | --- |
 | Host·Slot 소유권과 수명 정리 | PR #4·#5, 0.4.0 출시. `mountWhen="connected"`, `dispose()`, 빈 Slot 계약 문서화 |
-| CommonJS 타입 | PR #8에서 `.d.cts` 및 조건별 exports 추가. 기존 0.4.0은 해당 수정 미포함; 다음 패치에 포함 |
-| React 19.0/19.1 Suspense 정리 | PR #8에서 숨겨진 Host 삭제 회귀 수정. Activity 기능 기준으로 정리 hook 선택 |
+| CommonJS 타입 | PR #8에서 `.d.cts` 및 조건별 exports 추가. 0.4.1에 포함; CommonJS NodeNext 소비자 설치·타입 검사 통과 |
+| React 19.0/19.1 Suspense 정리 | PR #8에서 숨겨진 Host 삭제 회귀 수정, 0.4.1에 포함. Activity 기능 기준으로 정리 hook 선택 |
 | 호환성 검증 | React 18.0/18.2/18.3/19.0/19.1/19.2 소비자 검사, 18.3·19.2는 Chromium·Firefox·WebKit 검사 |
 | 영상·문서 예제 | 저장소의 `assets/media/portal-reel.mp4`, `.webm`, `.webp` 사용. 문서와 데모가 같은 로컬 미디어를 빌드에 포함 |
 | 미디어 동작 | 숨기면 일시정지, 재생 실패 후 재시도, 모션 설정 변경 반영. 실제 파일 로딩·이동·이벤트를 브라우저에서 검증 |
@@ -20,11 +20,17 @@
 가용성 의존성을 제거했습니다. `moveBefore`의 연결된 이동과 `appendChild` 폴백,
 숨김·복귀의 보장 범위는 구분하며 모든 브라우저의 연속 재생을 약속하지 않습니다.
 
-## 진행 중인 출시 운영 개선
+## 완료한 출시 운영 개선
 
-PR #9는 검증한 아카이브를 GitHub OIDC로 게시하는 절차를 추가합니다. 워크플로의
-dry run과 실제 게시 권한 검증은 다릅니다. npm Trusted Publisher 연결은 패키지
-관리자가 설정해야 하며, 확인된 호환성 수정은 다음 패치 출시 대상으로 관리합니다.
+PR #9의 GitHub OIDC 워크플로로 **0.4.1을 실제 게시**했습니다. PR #10의 출시
+커밋은 `63df84d4b14dbfc4f9159beda34000be845fdb54`이며 npm `latest`는 0.4.1입니다.
+[게시 실행](https://github.com/kickbelldev/react-preserve-portal/actions/runs/40164386268)에서
+레지스트리 파일과 검증한 아카이브의 해시·exports를 비교했고, npm provenance도
+발급했습니다. 한영 문서의 버전·마이그레이션 안내와 실제 사이트 검사도 완료했습니다.
+
+이 저장소의 Trusted Publisher 연결은 첫 실제 게시까지 검증됐습니다. 포크나 다른
+워크플로는 별도 연결이 필요합니다. 일반적인 dry run은 게시 권한을 검증하지 않으므로
+[출시 절차](./RELEASING.md)에 따라 실제 레지스트리 결과를 확인합니다.
 
 ## 실사용 사례가 생기면 검토할 후보
 
