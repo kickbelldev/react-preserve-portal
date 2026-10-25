@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <title>React Preserve Portal</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      width: 1200px;
+      height: 630px;
+      padding: 76px;
+      display: flex;
+      align-items: center;
+      color: #143b3a;
+      background:
+        radial-gradient(ellipse at 85% 45%, #d4f3e9, transparent 65%), #f6faf9;
+      font-family: Arial, sans-serif;
+    }
+    main {
+      width: 600px;
+      position: relative;
+      z-index: 1;
+    }
+    .name {
+      margin: 0 0 28px;
+      font-size: 28px;
+      font-weight: 700;
+      color: #087f72;
+    }
+    h1 {
+      margin: 0;
+      font-size: 66px;
+      line-height: 1.12;
+      letter-spacing: -3px;
+    }
+    .detail {
+      margin-top: 30px;
+      font-size: 23px;
+      line-height: 1.5;
+      color: #436765;
+    }
+    img {
+      position: absolute;
+      width: 480px;
+      height: 415px;
+      right: 35px;
+      top: 105px;
+    }
+  </style>
+  <main>
+    <p class="name">React Preserve Portal</p>
+    <h1>One component.<br />More than one place.</h1>
+    <p class="detail">Same DOM. New destination.</p>
+  </main>
+  <img
+    src="../public/hero.svg"
+    alt="One player moving between main and mini destinations"
+  />
+</html>

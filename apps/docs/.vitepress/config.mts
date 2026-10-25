@@ -1,4 +1,6 @@
-import { defineConfig } from 'vitepress'
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
+import { defineConfig, type HeadConfig } from 'vitepress'
 import { version } from '../../../packages/react-preserve-portal/package.json'
 
 const base = '/react-preserve-portal/'
@@ -75,18 +77,80 @@ export default defineConfig({
   outDir: '../../dist/apps/docs',
   cleanUrls: false,
   lastUpdated: true,
-  sitemap: { hostname: origin + base },
+  sitemap: {
+    hostname: origin + base,
+    transformItems: (items) => items.filter((item) => item.url !== '404.html'),
+  },
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}logo.svg` }],
     ['meta', { name: 'theme-color', content: '#087f72' }],
-    ['meta', { property: 'og:type', content: 'website' }],
-    ['meta', { property: 'og:site_name', content: 'React Preserve Portal' }],
   ],
-  transformHead({ pageData }) {
+  // Page data is shared by prerendered HTML and the client router. transformHead
+  // alone would leave the first page's canonical/share tags behind on navigation.
+  transformPageData(pageData, { siteConfig }) {
+    if (pageData.relativePath === '404.md') {
+      pageData.isNotFound = true
+      return
+    }
+
+    const en = pageData.relativePath.startsWith('en/')
+    const title = pageData.title || siteConfig.site.title
+    const description =
+      pageData.description ||
+      siteConfig.site.locales[en ? 'en' : 'root']?.description ||
+      siteConfig.site.description
     const route = pageData.relativePath
       .replace(/index\.md$/, '')
       .replace(/\.md$/, '.html')
-    return [['link', { rel: 'canonical', href: `${origin}${base}${route}` }]]
+    const url = `${origin}${base}${route}`
+    const image = `${origin}${base}social-card.png`
+    const imageAlt =
+      'React Preserve Portal — one component, main and mini destinations'
+    const unlocalizedPage = pageData.relativePath.replace(/^en\//, '')
+    const translations = [
+      { lang: 'ko-KR', locale: 'ko_KR', page: unlocalizedPage },
+      { lang: 'en', locale: 'en_US', page: `en/${unlocalizedPage}` },
+    ].filter(({ page }) => existsSync(join(siteConfig.srcDir, page)))
+    const locale = en ? 'en_US' : 'ko_KR'
+    const head: HeadConfig[] = [
+      ['link', { rel: 'canonical', href: url }],
+      ['meta', { property: 'og:type', content: 'website' }],
+      ['meta', { property: 'og:site_name', content: 'React Preserve Portal' }],
+      ['meta', { property: 'og:title', content: title }],
+      ['meta', { property: 'og:description', content: description }],
+      ['meta', { property: 'og:url', content: url }],
+      ['meta', { property: 'og:locale', content: locale }],
+      ['meta', { property: 'og:image', content: image }],
+      ['meta', { property: 'og:image:type', content: 'image/png' }],
+      ['meta', { property: 'og:image:width', content: '1200' }],
+      ['meta', { property: 'og:image:height', content: '630' }],
+      ['meta', { property: 'og:image:alt', content: imageAlt }],
+      ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+      ['meta', { name: 'twitter:title', content: title }],
+      ['meta', { name: 'twitter:description', content: description }],
+      ['meta', { name: 'twitter:image', content: image }],
+      ['meta', { name: 'twitter:image:alt', content: imageAlt }],
+    ]
+    for (const translation of translations) {
+      const route = translation.page
+        .replace(/index\.md$/, '')
+        .replace(/\.md$/, '.html')
+      head.push([
+        'link',
+        {
+          rel: 'alternate',
+          hreflang: translation.lang,
+          href: `${origin}${base}${route}`,
+        },
+      ])
+      if (translation.locale !== locale) {
+        head.push([
+          'meta',
+          { property: 'og:locale:alternate', content: translation.locale },
+        ])
+      }
+    }
+    pageData.frontmatter.head = [...(pageData.frontmatter.head ?? []), ...head]
   },
   vite: { esbuild: { jsx: 'automatic' } },
   locales: {

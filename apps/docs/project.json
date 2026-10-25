@@ -3,6 +3,13 @@
   "projectType": "application",
   "sourceRoot": "apps/docs",
   "targets": {
+    "check-output": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "command": "python3 scripts/check-docs-output.py"
+      }
+    },
     "build": {
       "executor": "nx:run-commands",
       "dependsOn": ["^build"],
