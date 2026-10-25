@@ -25,6 +25,7 @@ jobs:
       - run: corepack pnpm build --skip-nx-cache
         env:
           NODE_ENV: production
+      - run: node scripts/check-size.mjs
       - run: corepack pnpm exec nx run docs:check-output --output-style=static
         env:
           NODE_ENV: production

@@ -86,12 +86,12 @@ const {
 | 멤버                           | 타입                                | 동작                                                                         |
 | ------------------------------ | ----------------------------------- | ---------------------------------------------------------------------------- |
 | `slotKey`                      | 슬롯 키 또는 `null`                 | 현재 선택. 초기값 `null`.                                                    |
-| `setSlotKey(key)`              | `(key: SlotKey \| null) => void`                     | 목적지를 선택합니다. `null`은 숨기기.                                        |
+| `setSlotKey(key)`              | `(key: SlotKey \| null) => void`    | 목적지를 선택합니다. `null`은 숨기기.                                        |
 | `returnPath`                   | `string \| null`                    | 라우터를 위한 선택적 메타데이터. 초기값 `null`.                              |
 | `setReturnPath(path)`          | `(string \| null) => void`          | 메타데이터만 변경하며 URL은 바꾸지 않습니다.                                 |
 | `targets`                      | `ReadonlyMap<SlotKey, HTMLElement>` | 등록된 목적지 스냅샷. 직접 수정하지 마세요.                                  |
 | `registerTarget(key, element)` | `() => void` 반환                   | 수동 목적지를 등록하고 안전한 정리 함수를 반환합니다.                        |
-| `unregisterTarget(key)`        | `(key: SlotKey) => void`                     | 해당 키의 등록을 모두 해제합니다.                                            |
+| `unregisterTarget(key)`        | `(key: SlotKey) => void`            | 해당 키의 등록을 모두 해제합니다.                                            |
 | `reset()`                      | `() => void`                        | 숨기고 `returnPath`를 비웁니다. 목적지 등록과 콘텐츠 내부 상태는 유지합니다. |
 
 `slotKey`는 선택한 이름이며 실제 연결·가시성을 뜻하지 않습니다. 목적지가 아직 없거나 숨겨져 있을 수 있습니다. `setSlotKey(null)`은 선택만 비우고, `reset()`은 `returnPath`도 비웁니다. 둘 다 콘텐츠의 React 상태를 초기화하지 않습니다.

@@ -53,7 +53,9 @@ export default function App() {
 
   return (
     <main>
-      <Panel.Host><Editor /></Panel.Host>
+      <Panel.Host>
+        <Editor />
+      </Panel.Host>
 
       <section>
         <h2>Main view</h2>

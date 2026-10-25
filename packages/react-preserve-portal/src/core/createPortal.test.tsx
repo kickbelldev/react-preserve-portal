@@ -1,4 +1,10 @@
-import { render, screen, waitFor, act, renderHook } from '@testing-library/react'
+import {
+  render,
+  screen,
+  waitFor,
+  act,
+  renderHook,
+} from '@testing-library/react'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { resetPortal } from '../model/store'
 import { createPortal } from './createPortal'
