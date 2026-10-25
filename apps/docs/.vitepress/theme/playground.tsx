@@ -112,6 +112,7 @@ function PreservedCard({ ko, autoPlay }: { ko: boolean; autoPlay: boolean }) {
   const [playing, setPlaying] = useState(false)
   const [playbackError, setPlaybackError] = useState(false)
   const request = useRef({ id: 0 })
+  const autoplayAttempted = useRef(false)
   const [time, setTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const video = useRef<HTMLVideoElement>(null)
@@ -128,6 +129,14 @@ function PreservedCard({ ko, autoPlay }: { ko: boolean; autoPlay: boolean }) {
     if (slotKey === null || !autoPlay) {
       pending.id++
       video.current?.pause()
+      // Enabling motion later must not start previously paused media.
+      autoplayAttempted.current = true
+    } else if (!autoplayAttempted.current) {
+      autoplayAttempted.current = true
+      const currentRequest = ++pending.id
+      void video.current?.play().catch(() => {
+        if (currentRequest === pending.id) setPlaybackError(true)
+      })
     }
     return () => {
       pending.id++
@@ -157,7 +166,6 @@ function PreservedCard({ ko, autoPlay }: { ko: boolean; autoPlay: boolean }) {
           muted
           loop
           playsInline
-          autoPlay={autoPlay}
           preload="metadata"
           aria-label={
             ko
