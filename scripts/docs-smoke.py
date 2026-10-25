@@ -1,15 +1,17 @@
-"""Browser smoke check. Requires Python Playwright and a Chromium installation.
+"""Browser smoke check. Requires Python Playwright and the selected PORTAL_BROWSER.
 
-Run after `corepack pnpm docs:build` and `corepack pnpm docs:preview`:
-  python scripts/docs-smoke.py
+Run after `corepack pnpm docs:build`:
+  python scripts/docs-smoke.py --local
 Or pass the deployed base URL (including /react-preserve-portal/).
 """
 
+from contextlib import nullcontext
 import os
 import sys
 from playwright.sync_api import expect, sync_playwright
+from browser_support import launch_browser, preview
 
-base = (sys.argv[1] if len(sys.argv) > 1 else
+base = (sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] != '--local' else
         'http://127.0.0.1:4173/react-preserve-portal/').rstrip('/') + '/'
 
 
@@ -19,6 +21,14 @@ def check_preservation(page, fallback=False):
     page.goto(base + 'playground.html', wait_until='networkidle')
     note = page.get_by_test_id('preserved-input')
     expect(note).to_be_visible()
+    page.wait_for_function('document.querySelector("video").readyState >= 2')
+    page.evaluate('''() => {
+      window.originalVideo = document.querySelector('video');
+      originalVideo.pause();
+    }''')
+    page.get_by_role('button', name='재생', exact=True).click()
+    page.wait_for_function('!originalVideo.paused && originalVideo.currentTime > 0.2')
+    expect(page.get_by_role('button', name='일시정지', exact=True)).to_be_visible()
     note.fill('Persistent note / 유지되는 메모')
     page.get_by_test_id('increment').click()
     page.get_by_test_id('increment').click()
@@ -30,18 +40,36 @@ def check_preservation(page, fallback=False):
     }''')
     expect(page.get_by_test_id('mini-slot').locator('input')).to_be_visible()
     assert page.evaluate('window.originalNote === document.querySelector("[data-testid=preserved-input]")')
+    assert page.evaluate('originalVideo === document.querySelector("video")')
     expect(note).to_have_value('Persistent note / 유지되는 메모')
     expect(page.get_by_test_id('increment')).to_contain_text('2')
     if not fallback and page.evaluate("typeof Element.prototype.moveBefore === 'function'"):
+        assert page.evaluate('!originalVideo.paused')
         assert page.evaluate('document.activeElement === window.originalNote')
         assert page.evaluate('[window.originalNote.selectionStart, window.originalNote.selectionEnd]') == [2, 8]
     for action in ['hide', 'reset']:
         page.get_by_test_id(action).click()
         expect(note).to_have_count(0)
+        page.wait_for_function('originalVideo.paused && !originalVideo.isConnected')
         page.get_by_test_id('to-main').click()
         expect(note).to_have_value('Persistent note / 유지되는 메모')
         assert page.evaluate('window.originalNote === document.querySelector("[data-testid=preserved-input]")')
         expect(page.get_by_test_id('increment')).to_contain_text('2')
+        assert page.evaluate('originalVideo === document.querySelector("video") && originalVideo.paused')
+    page.evaluate('''() => {
+      window.originalPlay = originalVideo.play;
+      originalVideo.play = () => Promise.reject(new DOMException('Blocked', 'NotAllowedError'));
+    }''')
+    page.get_by_role('button', name='재생', exact=True).click()
+    expect(page.get_by_test_id('playback-error')).to_be_visible()
+    page.evaluate('() => { originalVideo.play = originalPlay }')
+    page.get_by_role('button', name='재생', exact=True).click()
+    expect(page.get_by_role('button', name='일시정지', exact=True)).to_be_visible()
+    expect(page.get_by_test_id('playback-error')).to_have_count(0)
+    page.emulate_media(reduced_motion='reduce')
+    expect(page.get_by_role('checkbox', name='View Transition')).to_be_disabled()
+    page.wait_for_function('originalVideo.paused')
+    page.emulate_media(reduced_motion='no-preference')
     toggle = page.get_by_role('checkbox', name='View Transition')
     if toggle.is_enabled():
         toggle.check()
@@ -51,11 +79,9 @@ def check_preservation(page, fallback=False):
         expect(page.get_by_test_id('main-slot').locator('input')).to_be_visible()
 
 
-with sync_playwright() as p:
-    browser = p.chromium.launch(
-        executable_path=os.environ.get('CHROMIUM_PATH', '/usr/bin/chromium'),
-        headless=True, args=['--no-sandbox', '--disable-dev-shm-usage'],
-    )
+server = preview('docs', 'react-preserve-portal/') if '--local' in sys.argv else nullcontext(base)
+with server as base, sync_playwright() as p:
+    browser = launch_browser(p)
     context = browser.new_context(viewport={'width': 1440, 'height': 1000})
     errors = []
     context.on('page', lambda page: page.on('pageerror', lambda error: errors.append(str(error))))
@@ -94,9 +120,10 @@ with sync_playwright() as p:
     mobile.emulate_media(reduced_motion='reduce')
     mobile.goto(base + 'playground.html', wait_until='networkidle')
     expect(mobile.get_by_role('checkbox', name='View Transition')).to_be_disabled()
+    assert mobile.locator('video').evaluate('(video) => video.paused && !video.autoplay')
 
     fallback = context.new_page()
     check_preservation(fallback, fallback=True)
     assert errors == [], errors
     browser.close()
-    print('PASS: native/fallback DOM identity, state, hide/reset, native focus/selection, View Transition, Korean/English search, locale navigation, dark mode, mobile navigation, reduced motion; no page errors.')
+    print(f'PASS: docs {os.environ.get("PORTAL_BROWSER", "chromium")}: real video, play failure/retry, dynamic reduced motion, native/fallback DOM identity, state, hide/reset, native focus/selection, View Transition, Korean/English search, locale navigation, dark mode, mobile navigation, reduced motion; no page errors.')

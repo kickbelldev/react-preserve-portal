@@ -4,11 +4,13 @@ import {
   useId,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from 'react'
 import { createRoot } from 'react-dom/client'
 import { flushSync } from 'react-dom'
-import { withBase } from 'vitepress'
+import media from '../../../../assets/media/portal-reel.mp4?url'
+import poster from '../../../../assets/media/portal-reel.webp?url'
 import { createPortal } from '@charley-kim/react-preserve-portal'
 
 const Demo = createPortal({
@@ -16,7 +18,13 @@ const Demo = createPortal({
   slots: ['main', 'mini'],
 })
 
-const MEDIA = withBase('/media/portal-reel')
+const motionQuery = '(prefers-reduced-motion: reduce)'
+function subscribeMotion(onChange: () => void) {
+  const query = window.matchMedia(motionQuery)
+  query.addEventListener('change', onChange)
+  return () => query.removeEventListener('change', onChange)
+}
+const prefersReducedMotion = () => window.matchMedia(motionQuery).matches
 
 function Icon({ children }: { children: ReactNode }) {
   return (
@@ -102,6 +110,8 @@ function PreservedCard({ ko, autoPlay }: { ko: boolean; autoPlay: boolean }) {
   const [lastSlot, setLastSlot] = useState(slotKey)
   const [moves, setMoves] = useState(0)
   const [playing, setPlaying] = useState(false)
+  const [playbackError, setPlaybackError] = useState(false)
+  const request = useRef({ id: 0 })
   const [time, setTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const video = useRef<HTMLVideoElement>(null)
@@ -113,11 +123,27 @@ function PreservedCard({ ko, autoPlay }: { ko: boolean; autoPlay: boolean }) {
     if (lastSlot !== null) setMoves(moves + 1)
   }
 
+  useEffect(() => {
+    const pending = request.current
+    if (slotKey === null || !autoPlay) {
+      pending.id++
+      video.current?.pause()
+    }
+    return () => {
+      pending.id++
+    }
+  }, [slotKey, autoPlay])
+
   function togglePlay() {
     const element = video.current
     if (!element) return
-    if (element.paused) void element.play().catch(() => {})
-    else element.pause()
+    const currentRequest = ++request.current.id
+    setPlaybackError(false)
+    if (element.paused) {
+      void element.play().catch(() => {
+        if (currentRequest === request.current.id) setPlaybackError(true)
+      })
+    } else element.pause()
   }
 
   return (
@@ -126,7 +152,8 @@ function PreservedCard({ ko, autoPlay }: { ko: boolean; autoPlay: boolean }) {
         <video
           ref={video}
           data-testid="preserved-video"
-          poster={`${MEDIA}.webp`}
+          poster={poster}
+          src={media}
           muted
           loop
           playsInline
@@ -137,15 +164,17 @@ function PreservedCard({ ko, autoPlay }: { ko: boolean; autoPlay: boolean }) {
               ? '타임코드가 흐르는 예제 영상'
               : 'Example video with a running timecode'
           }
-          onPlay={() => setPlaying(true)}
+          onPlay={(event) => {
+            setPlaying(!event.currentTarget.paused)
+            setPlaybackError(false)
+          }}
           onPause={() => setPlaying(false)}
+          onError={() => setPlaybackError(true)}
           onLoadedMetadata={(event) =>
             setDuration(event.currentTarget.duration)
           }
           onTimeUpdate={(event) => setTime(event.currentTarget.currentTime)}
-        >
-          <source src={`${MEDIA}.mp4`} type="video/mp4" />
-        </video>
+        />
         <div className="demo-media-bar">
           <button
             className="demo-play"
@@ -162,6 +191,13 @@ function PreservedCard({ ko, autoPlay }: { ko: boolean; autoPlay: boolean }) {
         </div>
       </div>
       <div className="demo-body">
+        {playbackError && (
+          <p role="status" data-testid="playback-error">
+            {ko
+              ? '재생할 수 없습니다. 재생 버튼으로 다시 시도해 주세요.'
+              : 'Playback failed. Use Play to try again.'}
+          </p>
+        )}
         <div className="demo-card-top">
           <span className="demo-dot" />
           {ko ? '하나의 React 인스턴스' : 'One React instance'}
@@ -208,9 +244,11 @@ function Playground({ ko }: { ko: boolean }) {
     'moveBefore' in Element.prototype &&
     typeof Element.prototype.moveBefore === 'function'
   const transitions = typeof document.startViewTransition === 'function'
-  const reducedMotion = window.matchMedia(
-    '(prefers-reduced-motion: reduce)',
-  ).matches
+  const reducedMotion = useSyncExternalStore(
+    subscribeMotion,
+    prefersReducedMotion,
+    () => true,
+  )
 
   useEffect(() => {
     setSlotKey('main')
@@ -259,7 +297,7 @@ function Playground({ ko }: { ko: boolean }) {
               : 'appendChild fallback'}
         </span>
       </div>
-      <Demo.Host>
+      <Demo.Host mountWhen="connected">
         <PreservedCard ko={ko} autoPlay={!reducedMotion} />
       </Demo.Host>
       <div className="demo-destinations">
@@ -361,8 +399,8 @@ function Playground({ ko }: { ko: boolean }) {
       </div>
       <p className="demo-hint">
         {ko
-          ? '숨겼다가 다시 메인으로 보내도 영상, 메모, 카운터가 그대로입니다. reset()은 콘텐츠를 숨길 뿐 내부 상태를 초기화하지 않습니다.'
-          : 'Hide it and bring it back: the video, note and counter are all still there. reset() hides the content; it does not reset its internal state.'}
+          ? '숨기기와 reset()은 영상을 일시정지합니다. 돌아온 뒤 재생 버튼을 눌러 이어 보세요. 메모와 카운터는 유지됩니다.'
+          : 'Hide and reset() pause the video. Press Play after bringing it back. The note and counter stay intact.'}
       </p>
     </section>
   )

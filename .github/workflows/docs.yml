@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'apps/docs/**'
+      - 'assets/media/**'
       - 'packages/react-preserve-portal/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
