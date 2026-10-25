@@ -1,4 +1,5 @@
 import { resolve } from 'node:path'
+import { copyFile } from 'node:fs/promises'
 
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
@@ -11,6 +12,12 @@ export default defineConfig({
     dts({
       include: ['src'],
       rollupTypes: true,
+      // NodeNext consumers need declarations matching each runtime module kind.
+      afterBuild: () =>
+        copyFile(
+          resolve(__dirname, 'dist/index.d.ts'),
+          resolve(__dirname, 'dist/index.d.cts'),
+        ),
     }),
   ],
   build: {

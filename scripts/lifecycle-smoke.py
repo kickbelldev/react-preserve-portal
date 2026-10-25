@@ -1,18 +1,18 @@
 """Run real-browser portal lifecycle regressions with Python Playwright.
 
-Requires the workspace dependencies and Chromium (system or Playwright-installed).
+Requires the workspace dependencies and a Playwright browser.
+PORTAL_BROWSER selects chromium (default), firefox, or webkit.
 REACT_MODULES can point to a separate node_modules with React 18 or 19.
 """
 import functools
 import http.server
-import os
 from pathlib import Path
-import shutil
 import subprocess
 import tempfile
 import threading
 
 from playwright.sync_api import expect, sync_playwright
+from browser_support import launch_browser
 
 root = Path(__file__).resolve().parent.parent
 with tempfile.TemporaryDirectory(prefix='portal-browser-') as output:
@@ -29,9 +29,7 @@ with tempfile.TemporaryDirectory(prefix='portal-browser-') as output:
     thread.start()
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(
-                executable_path=os.environ.get('CHROMIUM_PATH') or shutil.which('chromium'),
-                args=['--no-sandbox', '--disable-dev-shm-usage'])
+            browser = launch_browser(p)
             errors = []
             for mode in ['suspense', 'activity', 'fallback']:
                 page = browser.new_page()
@@ -44,7 +42,7 @@ with tempfile.TemporaryDirectory(prefix='portal-browser-') as output:
                     continue
                 page.evaluate('(mode) => portalFixture.mount(mode)', mode)
                 expect(page.locator('#note')).to_be_visible()
-                assert page.evaluate('document.activeElement.id') == 'note'
+                expect(page.locator('#note')).to_be_focused()
                 measured = page.evaluate('portalFixture.state().measurements')
                 assert len(measured) == 1 and measured[0]['connected'] and measured[0]['width'] > 0
                 page.locator('#note').fill('edited')
@@ -74,6 +72,8 @@ with tempfile.TemporaryDirectory(prefix='portal-browser-') as output:
                 assert page.evaluate('original === document.querySelector("#note")')
                 assert page.evaluate('document.querySelector("#frame").contentWindow.marker') == 99
                 expect(page.locator('#counter')).to_have_text('1')
+                page.locator('#counter').click()
+                expect(page.locator('#counter')).to_have_text('2')
                 page.evaluate('portalFixture.move(null)')
                 assert page.evaluate('!original.isConnected')
                 page.evaluate('portalFixture.move("main")')
@@ -84,7 +84,7 @@ with tempfile.TemporaryDirectory(prefix='portal-browser-') as output:
                 assert page.evaluate('portalFixture.dispose()') is True
                 counts = page.evaluate('portalFixture.state()')
                 assert counts['effects'] == counts['cleanup']
-                print(f'PASS: React {page.evaluate("portalFixture.reactVersion")} {mode}; connection, autofocus, DOM/state, iframe lifetime, deletion/disposal')
+                print(f'PASS: {browser.browser_type.name} React {page.evaluate("portalFixture.reactVersion")} {mode}; connection, autofocus, DOM/state, iframe lifetime, deletion/disposal')
                 page.close()
             assert not errors, errors
             browser.close()

@@ -35,13 +35,16 @@ and main/mini player transitions in a real browser. Browser-managed state can
 behave differently with `moveBefore` and the `appendChild` fallback; do not claim
 universal iframe or uninterrupted-media preservation.
 
-Run `python scripts/lifecycle-smoke.py` with Python Playwright and Chromium
+Run `python scripts/lifecycle-smoke.py` with Python Playwright and a browser
 installed for real-browser connection, focus, iframe, hidden-deletion, and
 disposal regressions. `REACT_MODULES` can point to a separate `node_modules`
-containing React and React DOM. CI runs React 18.3.1 and 19.2.3 production builds,
-including native `moveBefore` and forced `appendChild` fallback paths. Activity
-is tested on React 19.2. Do not replace this matrix with jsdom alone: React 18
-skips insertion cleanup when deleting a suspended tree, while React 19 Activity
+containing React and React DOM. Set `PORTAL_BROWSER` to `chromium` (default),
+`firefox`, or `webkit`. CI tests React 18.3.1 and 19.2.3 on all three engines,
+plus React 18.0.0, 18.2.0, 19.0.0 and 19.1.0 on Chromium. Each engine runs its
+native capability path and a forced `appendChild` fallback. Activity is tested
+on React 19.2. WebKit coverage is engine coverage, not a claim of testing every
+Safari/iOS device. Do not replace this matrix with jsdom alone: React 18
+and React 19.0/19.1 skip insertion cleanup when deleting a suspended tree, while Activity-capable React
 disconnects passive effects when hiding it.
 
 After building the demo, `python scripts/demo-smoke.py` serves the production
@@ -104,7 +107,9 @@ https://kickbelldev.github.io/react-preserve-portal/.
 
    These checks exercise the
    public types, server rendering, and DOM/state preservation in both. The packed
-   package must contain the README, MIT license, and all three dist entry points.
+   package must contain the README, MIT license, and ESM/CJS runtime entries and their matching `.d.ts`/`.d.cts` declarations.
+   The consumer check accepts `18`, `19`, or an exact supported React version and
+   type-checks both ESM (`.tsx`) and CommonJS (`.cts`) callers.
 
 5. Check `npm view @charley-kim/react-preserve-portal version` and `npm whoami`.
    Publish the **same verified tarball** using a maintainer account with package
