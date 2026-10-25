@@ -17,6 +17,7 @@ jobs:
           node-version: '24'
       - run: corepack enable
       - run: corepack pnpm install --frozen-lockfile
+      - run: corepack pnpm exec nx exec --projects=@charley-kim/react-preserve-portal -- node --test "$GITHUB_WORKSPACE/scripts/release-policy.test.mjs"
       - run: corepack pnpm exec nx run-many --targets=test,typecheck,lint --all --parallel=2 --skip-nx-cache --output-style=static
       - run: corepack pnpm build --skip-nx-cache
         env:
