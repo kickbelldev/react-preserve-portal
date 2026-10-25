@@ -88,39 +88,6 @@ https://kickbelldev.github.io/react-preserve-portal/.
 
 ## Release
 
-1. Update the package version and its CHANGELOG. Document compatibility changes.
-2. Run the checks above without reusing stale results (`--skip-nx-cache` when verifying a release).
-3. Pack the actual package and inspect its files and public ESM/CJS/types entry points:
-
-   ```bash
-   mkdir -p /tmp/react-preserve-portal-release
-   corepack pnpm --dir packages/react-preserve-portal pack --pack-destination /tmp/react-preserve-portal-release
-   npm publish /tmp/react-preserve-portal-release/charley-kim-react-preserve-portal-VERSION.tgz --access public --dry-run
-   ```
-
-4. Install that tarball in isolated React 18 and React 19 consumers:
-
-   ```bash
-   node scripts/verify-package.mjs /tmp/react-preserve-portal-release/charley-kim-react-preserve-portal-VERSION.tgz 18
-   node scripts/verify-package.mjs /tmp/react-preserve-portal-release/charley-kim-react-preserve-portal-VERSION.tgz 19
-   ```
-
-   These checks exercise the
-   public types, server rendering, and DOM/state preservation in both. The packed
-   package must contain the README, MIT license, and ESM/CJS runtime entries and their matching `.d.ts`/`.d.cts` declarations.
-   The consumer check accepts `18`, `19`, or an exact supported React version and
-   type-checks both ESM (`.tsx`) and CommonJS (`.cts`) callers.
-
-5. Check `npm view @charley-kim/react-preserve-portal version` and `npm whoami`.
-   Publish the **same verified tarball** using a maintainer account with package
-   write access, completing any required npm authentication/2FA securely:
-
-   ```bash
-   npm publish /tmp/react-preserve-portal-release/charley-kim-react-preserve-portal-VERSION.tgz --access public
-   ```
-
-6. Confirm the registry version, dist tag, and tarball integrity. Record the
-   release commit and tag in Git only when the publication has succeeded.
-
-Never commit npm tokens or credential-bearing configuration. A dry run or packed
-artifact is not a published release. Do not publish a version that already exists.
+See [RELEASING.md](./RELEASING.md) for the tag-triggered npm OIDC workflow,
+its manual rehearsal, one-time npm configuration, and recovery checks. Release
+preparation still goes through a reviewed PR and the full compatibility CI.
