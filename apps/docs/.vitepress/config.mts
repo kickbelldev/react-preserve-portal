@@ -94,7 +94,7 @@ export default defineConfig({
           { text: 'API', link: '/api' },
           { text: '플레이그라운드', link: '/playground' },
           {
-            text: 'v0.4.0',
+            text: 'v0.4.1',
             link: 'https://www.npmjs.com/package/@charley-kim/react-preserve-portal',
           },
         ],
@@ -127,7 +127,7 @@ export default defineConfig({
           { text: 'API', link: '/en/api' },
           { text: 'Playground', link: '/en/playground' },
           {
-            text: 'v0.4.0',
+            text: 'v0.4.1',
             link: 'https://www.npmjs.com/package/@charley-kim/react-preserve-portal',
           },
         ],

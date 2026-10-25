@@ -1,8 +1,13 @@
-## Unreleased
+## 0.4.1 (2026-10-25)
 
 - Fix CommonJS TypeScript consumers by publishing a matching `.d.cts` declaration entry.
 - Fix hidden Suspense deletion in React 19.0/19.1 by selecting lifetime cleanup based on Activity support.
 - Expand browser coverage to Chromium, Firefox and WebKit, and test the supported React minimum and earlier React 19 releases.
+- Verify self-hosted MP4/WebM documentation and routing demos, including playback failures, hide/resume, and reduced motion.
+- Prepare verified GitHub OIDC publishing with registry integrity checks.
+
+This patch preserves the 0.4.0 API and peer requirements. Upgrade especially when
+using CommonJS with NodeNext resolution or React 19.0/19.1 Suspense.
 
 ## 0.4.0 (2026-10-25)
 

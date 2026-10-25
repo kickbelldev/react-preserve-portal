@@ -6,7 +6,7 @@ description: 0.4.0의 DOM 소유권, 초기 연결, 숨김 경계와 ID 저장�
 # 수명과 소유권
 
 ::: info 0.4.0부터 제공
-이 페이지의 API와 수명 수정은 **0.4.0**에 포함됩니다. 0.3.x를 사용 중이면 업그레이드하세요. 강화된 빈 Slot·동일 문서 계약은 [마이그레이션 가이드](../migration)를 참고하세요.
+이 페이지의 API는 **0.4.0**부터 제공됩니다. React 19.0/19.1에서 숨겨진 Host의 최종 삭제 정리는 **0.4.1**에서 수정했습니다. 0.3.x를 사용 중이면 업그레이드하세요. 강화된 빈 Slot·동일 문서 계약은 [마이그레이션 가이드](../migration)를 참고하세요.
 :::
 
 ## Slot은 빈 목적지입니다
@@ -27,7 +27,7 @@ Slot에 `children` 또는 `dangerouslySetInnerHTML`을 전달하면 타입 검�
 
 ## 숨김 경계와 실제 해제
 
-Host의 컨테이너 제거를 최종 삭제 시점으로 옮겼습니다. Host 바깥의 Suspense/Activity가 layout effect를 정리하더라도 컨테이너는 연결된 채 남고, 콘텐츠 표시와 Effect 처리는 React의 정책을 따릅니다. React 18/19에서 확인하며 Activity는 React 19.2 이상 기능입니다.
+Host의 컨테이너 제거를 최종 삭제 시점으로 옮겼습니다. Host 바깥의 Suspense/Activity가 layout effect를 정리하더라도 컨테이너는 연결된 채 남고, 콘텐츠 표시와 Effect 처리는 React의 정책을 따릅니다. React 18.0·18.2·18.3·19.0·19.1·19.2에서 확인하며 Activity는 React 19.2 이상 기능입니다.
 
 `setSlotKey(null)`과 `reset()`은 여전히 컨테이너를 **분리**합니다. Slot 자체가 사라지거나 숨김 경계에서 등록 해제되면 목적지도 없어집니다. 연결을 계속 유지해야 하는 iframe은 지속적으로 마운트된 Slot을 사용하세요. React 상태·DOM 객체·브라우저 문서·Effect의 수명은 서로 다릅니다.
 
