@@ -46,6 +46,8 @@ Host does not forward general HTML attributes or refs. Put styling, events, and 
 
 ### Move animation {#animate}
 
+`animate` and the public `PortalAnimation` type are available from 0.5.0.
+
 With `animate`, the Host animates its container from the old position to the new one when `setSlotKey` changes the slot. It works for any content and needs no extra library.
 
 ```tsx
@@ -60,12 +62,12 @@ With `animate`, the Host animates its container from the old position to the new
 It follows these rules to stay fast:
 
 - **Only transform and opacity change.** The animation runs through the Web Animations API, so the compositor handles it and layout is not recalculated while it plays.
-- **One measurement per move.** The on-screen box is recorded just before `setSlotKey`, and the new box is measured once after the move, before the browser paints.
+- **Measure at move boundaries.** The on-screen box is recorded just before `setSlotKey`, and the new box is measured after the move, before the browser paints. No measurements run on every frame.
 - **Interruptible.** Moving again mid-animation continues from where the content currently appears.
 - **Free when off.** Without `animate`, nothing is measured.
 - **Respects reduced motion.** With `prefers-reduced-motion: reduce`, nothing animates.
 
-The default easing is a spring curve built with `linear()`, with a regular curve in browsers that lack it. Content that reappears after hiding (`null`) fades in briefly. Moves from a zero-size box (inside a hidden parent) are not animated. Between slots of different sizes, the content scales uniformly so text and video are not distorted.
+The default duration is 450 ms with a slight-overshoot `cubic-bezier(.2,.9,.3,1.08)` easing. Content that reappears after hiding (`null`) fades in over half the configured duration. Moves from a zero-size box (inside a hidden parent) are not animated. Between slots of different sizes, the content scales uniformly so text and video are not distorted.
 
 ## `Slot`
 
@@ -142,7 +144,7 @@ function ExternalTarget({ element }: { element: HTMLElement | null }) {
 }
 ```
 
-Every registration has a distinct identity, even when reusing the same element. The returned cleanup only unregisters that registration if it is still current. Prefer it over a manual `unregisterTarget` call to avoid removing a newer destination. Destinations must be in Host's document and cannot be its container or descendants. The library rejects cross-document adoption and cyclic moves before changing the DOM.
+Every registration has a distinct identity, even when reusing the same element. The returned cleanup removes only its own registration, leaving other registrations intact. Prefer it over a manual `unregisterTarget` call to avoid removing a newer destination. Destinations must be in Host's document and cannot be its container or descendants. The library rejects cross-document adoption and cyclic moves before changing the DOM.
 
 ## `dispose(): boolean`
 

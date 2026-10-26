@@ -1,6 +1,7 @@
 import {
   createElement,
   useCallback,
+  useEffect,
   useLayoutEffect,
   useRef,
   type Ref,
@@ -9,6 +10,10 @@ import {
 import type { SlotProps } from '../core/types'
 import { DEFAULT_PORTAL_ID, getPortalStore } from '../model/store'
 import { useCommittedEffect } from '../model/useCommittedEffect'
+
+// Ref assignment is a client commit concern. React 18 warns for layout effects
+// during SSR even when their callback would have nothing to do.
+const useRefEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 type InternalPortalSlotProps<T extends keyof HTMLElementTagNameMap> = Omit<
   SlotProps<string, T>,
@@ -49,7 +54,7 @@ export function InternalPortalSlot<
 
   // Forward the element to the caller's ref separately so an inline ref
   // function does not re-register the destination on every render.
-  useLayoutEffect(() => {
+  useRefEffect(() => {
     if (!userRef) return
     assignRef(userRef, nodeRef.current as HTMLElementTagNameMap[T] | null)
     return () => assignRef(userRef, null)

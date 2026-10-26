@@ -1,12 +1,20 @@
-## Unreleased
+## 0.5.0 (2026-10-26)
 
-- Add `Host animate`: FLIP-animate the container between slots with transform/opacity only (Web Animations API), one measurement per move, interruptible, spring easing via `linear()`, and reduced-motion support. Off by default with no measurement cost.
+- Add `Host animate` and the `PortalAnimation` type: animate slot moves with transform/opacity through the Web Animations API, measure at move boundaries rather than every frame, and continue from the current position when interrupted. The default is 450 ms with a slight-overshoot `cubic-bezier(.2,.9,.3,1.08)` easing. Reduced motion is respected; animation is off by default with no measurement cost.
 - When the newest Slot (or manual registration) for a key is removed, return the content to the most recent registration that is still mounted instead of hiding it. Overlapping Slots during exit animations no longer drop the content.
 - Fall back to `appendChild` if `Element.moveBefore` throws for a connected move.
 - Accept a `ref` on `Slot` (React 18 and 19). Inline ref functions do not re-register the destination.
+- Keep Slot ref effects client-only so React 18 server rendering stays free of layout-effect warnings.
 - Return the same `usePortal()` object until the portal state changes, so it is safe in effect dependencies.
 - With `mountWhen="connected"`, observe the document only while the selected destination sits in a detached tree.
 - Add development-only warnings for multiple Hosts per portal, undeclared slot keys, one ID created with different slots, and a Host `as` change after mount. Production builds strip them.
+- Point the npm homepage at the bilingual documentation site.
+
+Existing 0.4.x calls remain supported, with the same React 18+ and TypeScript 5+
+requirements. When same-key destinations overlap, removing the newest one now
+restores the previous registration; call `setSlotKey(null)` or `reset()` if the
+application intends to hide the content instead. `unregisterTarget(key)` still
+clears all registrations for that key. Animation and Slot refs are opt-in.
 
 ## 0.4.1 (2026-10-25)
 

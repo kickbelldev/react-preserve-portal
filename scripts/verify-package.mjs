@@ -42,12 +42,22 @@ try {
   writeFileSync(
     join(directory, 'consumer.tsx'),
     `
-import { createPortal } from '@charley-kim/react-preserve-portal'
+import { createRef } from 'react'
+import { createPortal, type PortalAnimation } from '@charley-kim/react-preserve-portal'
 const Portal = createPortal({ id: 'typed-consumer', slots: ['main', 'mini'] })
 const children = <Portal.Host><input defaultValue="ok" /></Portal.Host>
 const legacy = <Portal.Host node={<input />} />
 const slot = <Portal.Slot slotKey="main" as="section" />
 const connected = <Portal.Host mountWhen="connected"><input autoFocus /></Portal.Host>
+const animation: PortalAnimation = { duration: 300, easing: 'ease-out' }
+const animated = <Portal.Host animate={animation}><input /></Portal.Host>
+const defaultAnimation = <Portal.Host animate><input /></Portal.Host>
+const canvasRef = createRef<HTMLCanvasElement>()
+const slotRef = <Portal.Slot slotKey="mini" as="canvas" ref={canvasRef} />
+// @ts-expect-error Animation duration must remain numeric in the published types.
+const invalidAnimation = <Portal.Host animate={{ duration: 'slow' }}><input /></Portal.Host>
+// @ts-expect-error Ref element types must match the Slot's as tag.
+const invalidRef = <Portal.Slot slotKey="main" as="canvas" ref={createRef<HTMLVideoElement>()} />
 const disposed: boolean = Portal.dispose()
 // @ts-expect-error Slot content would overwrite the portal's DOM.
 const invalidChildren = <Portal.Slot slotKey="main">placeholder</Portal.Slot>
@@ -57,14 +67,16 @@ const invalidHTML = <Portal.Slot slotKey="main" dangerouslySetInnerHTML={{ __htm
 const invalidSlot = <Portal.Slot slotKey="wrong" />
 // @ts-expect-error The two content props are mutually exclusive.
 const invalidHost = <Portal.Host node="old">new</Portal.Host>
-void [children, legacy, slot, connected, disposed, invalidChildren, invalidHTML, invalidSlot, invalidHost]
+void [children, legacy, slot, connected, animation, animated, defaultAnimation, slotRef, invalidAnimation, invalidRef, disposed, invalidChildren, invalidHTML, invalidSlot, invalidHost]
 `,
   )
   writeFileSync(
     join(directory, 'consumer.cts'),
     `
-import { createPortal } from '@charley-kim/react-preserve-portal'
+import { createPortal, type PortalAnimation } from '@charley-kim/react-preserve-portal'
 const Portal = createPortal({ id: 'commonjs-types', slots: ['main'] })
+const animation: PortalAnimation = { duration: 300, easing: 'ease-out' }
+Portal.Host({ children: 'content', animate: animation })
 const released: boolean = Portal.dispose()
 // @ts-expect-error Slot keys must remain checked in CommonJS consumers.
 Portal.Slot({ slotKey: 'missing' })

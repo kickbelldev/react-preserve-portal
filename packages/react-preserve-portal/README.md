@@ -105,7 +105,7 @@ Host → React portal → stable container → currently selected Slot
 
 ## API
 
-The reference below describes 0.4.1. See the
+The reference below describes 0.5.0. See the
 [lifecycle guide](https://kickbelldev.github.io/react-preserve-portal/en/guide/lifecycle-safety.html)
 for connected mounting, hidden boundaries, destination ownership, and disposal.
 
@@ -143,7 +143,7 @@ keep the Host container connected, while React controls visibility and Effects.
 
 With `animate`, a `setSlotKey` move animates the container from its old box to
 the new one (FLIP). It changes only `transform` and `opacity` through the Web
-Animations API, measures once per move, continues smoothly when interrupted,
+Animations API, measures at move boundaries rather than every frame, continues smoothly when interrupted,
 and respects `prefers-reduced-motion`. Without `animate`, nothing is measured.
 
 ### `Slot`
