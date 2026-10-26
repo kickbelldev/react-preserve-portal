@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { defineConfig, type HeadConfig } from 'vitepress'
 import { version } from '../../../packages/react-preserve-portal/package.json'
+import { analyticsHead } from './analytics'
 
 const base = '/react-preserve-portal/'
 const origin = 'https://kickbelldev.github.io'
@@ -82,6 +83,12 @@ export default defineConfig({
     transformItems: (items) => items.filter((item) => item.url !== '404.html'),
   },
   head: [
+    ...analyticsHead(
+      process.env.DOCS_ANALYTICS_ENABLED,
+      process.env.DOCS_ANALYTICS_TOKEN,
+      origin,
+      base,
+    ),
     ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}logo.svg` }],
     ['meta', { name: 'theme-color', content: '#18181b' }],
   ],
