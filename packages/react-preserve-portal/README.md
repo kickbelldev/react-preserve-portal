@@ -3,275 +3,150 @@
 [![npm version](https://badgen.net/npm/v/@charley-kim/react-preserve-portal)](https://www.npmjs.com/package/@charley-kim/react-preserve-portal)
 [![license](https://badgen.net/npm/license/@charley-kim/react-preserve-portal)](https://github.com/kickbelldev/react-preserve-portal/blob/main/LICENSE)
 
-Move an existing DOM instance, such as a playing `<video>`, a loaded `<iframe>`,
-a WebGL canvas, or an editor, to another place in your layout without
-recreating it. The same DOM nodes are reused, so the React subtree inside is not
-remounted either: component state and effects carry on.
+Move one React subtree between layout destinations while keeping the same DOM
+nodes and component state. Use it for a player, editor, canvas, or map that needs
+to move between a main view and a smaller view without remounting.
 
-**Why not lift state into a store?** React state can be restored after a remount.
-State held by DOM instances cannot: a video's loaded data and decoder, an
-iframe's document, a WebGL context, DOM built by map or editor libraries, and
-the caret, selection, and scroll position of text being edited. Recreating the
-node reloads or interrupts them. Moving the same node is the only way to keep
-them.
+React renders into one stable portal container; the library moves that container
+between Slots. Browser-managed state such as playback, iframe documents and focus
+also depends on the browser's DOM move support. See [preservation limits](#preservation-limits).
 
-**Why not React's `createPortal`?** Changing a portal's target to another node
-makes React unmount and remount its content. This library always renders into
-one container and moves that container node between destinations instead.
+[English documentation](https://kickbelldev.github.io/react-preserve-portal/en/)
+· [한국어 문서](https://kickbelldev.github.io/react-preserve-portal/)
+· [Live playground](https://kickbelldev.github.io/react-preserve-portal/en/playground.html)
+· [한국어 예제](https://kickbelldev.github.io/react-preserve-portal/playground.html)
 
-```bash
+## Install
+
+```sh
 npm install @charley-kim/react-preserve-portal
 ```
 
-Requires React and React DOM 18 or later. TypeScript users need TypeScript 5 or
-later for automatic literal inference. The library has no runtime dependencies
-other than its React peer dependencies. Both ESM and CommonJS consumers have
-matching runtime and TypeScript declaration entries. Version 0.4.1 also fixes
-final cleanup of hidden Suspense Hosts in React 19.0/19.1.
-
-Read the [technical documentation](https://kickbelldev.github.io/react-preserve-portal/en/)
-([한국어](https://kickbelldev.github.io/react-preserve-portal/)) for detailed guides,
-API reference, browser compatibility, and an interactive playground.
+Use an existing app with React and React DOM **18+**. TypeScript users need **5+**.
+ESM and CommonJS include matching declarations. React and React DOM are the only
+runtime peer dependencies.
 
 ## Quick start
 
-Create the portal **once, outside component render**. Keep its `Host` mounted for
-as long as you want its content and state to survive.
+Paste this into `App.tsx`. No video file, router, or additional package is needed.
+In a React Server Component framework such as Next.js, put the example behind a
+`'use client'` boundary. Define the portal once outside component render.
 
-```tsx
-import { useEffect } from 'react'
+```tsx [App.tsx]
+import { useEffect, useState } from 'react'
 import { createPortal } from '@charley-kim/react-preserve-portal'
 
-const Player = createPortal({ id: 'player', slots: ['main', 'mini'] })
+const Panel = createPortal({ id: 'editor', slots: ['main', 'mini'] })
 
-export function App() {
-  const { slotKey, setSlotKey } = Player.usePortal()
+function Editor() {
+  const [count, setCount] = useState(0)
+  return (
+    <div>
+      <input aria-label="Note" defaultValue="Edit this before moving" />
+      <button onClick={() => setCount(count + 1)}>Count: {count}</button>
+    </div>
+  )
+}
 
+export default function App() {
+  const { setSlotKey } = Panel.usePortal()
   useEffect(() => setSlotKey('main'), [setSlotKey])
 
   return (
-    <>
-      <Player.Host>
-        <video src="/video.mp4" controls />
-      </Player.Host>
+    <main>
+      <Panel.Host>
+        <Editor />
+      </Panel.Host>
 
-      <main>
-        <Player.Slot slotKey="main" />
-      </main>
-      <aside>
-        <Player.Slot slotKey="mini" />
-      </aside>
+      <section>
+        <h2>Main view</h2>
+        <Panel.Slot slotKey="main" style={{ minHeight: 80 }} />
+      </section>
+      <section>
+        <h2>Mini view</h2>
+        <Panel.Slot slotKey="mini" style={{ minHeight: 80 }} />
+      </section>
 
-      <button onClick={() => setSlotKey(slotKey === 'main' ? 'mini' : 'main')}>
-        Move player
-      </button>
+      <button onClick={() => setSlotKey('main')}>Show in main</button>
+      <button onClick={() => setSlotKey('mini')}>Show in mini</button>
       <button onClick={() => setSlotKey(null)}>Hide</button>
-    </>
+    </main>
   )
 }
 ```
 
-The initial active slot is `null`: content is mounted in a detached container,
-so it is not visible until you select a registered slot. Selecting a slot before
-it mounts is supported; content attaches when the destination appears.
+1. Edit the note and increment the counter.
+2. Select **Show in mini**. The same input and its value move with the counter.
+3. Select **Hide**, then **Show in main**. Both values remain.
 
-## How preservation works
+| Part                | Responsibility                                                                |
+| ------------------- | ----------------------------------------------------------------------------- |
+| `Panel.Host`        | Owns the content. Keep one Host mounted while that content needs to survive.  |
+| `Panel.Slot`        | An empty destination. Put headings and placeholders beside it, not inside it. |
+| `Panel.usePortal()` | Select a destination with `setSlotKey(key)` or hide it with `null`.           |
 
-React always renders into the **same unmanaged container**. The library moves
-that container node between `Slot` elements. The DOM nodes are never recreated,
-and because React's portal destination never changes, the React subtree is never
-remounted either.
+The initial key is `null`; the Effect selects `main` after mounting. The default
+Host can mount content before its container connects to the document. Use
+`mountWhen="connected"` when initial measurements or autofocus need a connected
+element. Give independent portals distinct, stable IDs. Style the content or
+Slot; Host does not forward general HTML attributes or refs.
 
-```text
-Host → React portal → stable container → currently selected Slot
-```
+## Preservation limits
 
-- The same DOM nodes (and therefore React state and effects) survive slot changes
-  while `Host` stays mounted.
-- Hiding content or temporarily removing a destination detaches the container;
-  the React subtree remains mounted. Effects and timers continue running.
-- Unmounting `Host`, changing its React key, or replacing its content with a
-  different component type ends preservation, following normal React rules.
-- Connected moves use the browser's `Element.moveBefore` when available. Other
-  moves use `appendChild`. Detaching/reinserting DOM can reset browser-managed
-  state such as focus, iframe documents, media playback, or animations. DOM
-  identity alone does **not** guarantee uninterrupted playback or iframe state
-  in every browser. Test the browsers and media you support.
-- Within one root, React context and synthetic events follow the `Host` tree.
-  A destination in another root can also invoke that root's event handlers;
-  this is not event isolation. CSS inheritance follows the physical DOM.
-  Cross-document moves are rejected; Shadow DOM selection/IME is not guaranteed.
-- Keep `Host`'s `as` tag stable; it is chosen when the container is created.
+| Situation                                                                          | Behavior                                                                                             |
+| ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Moving between Slots with the same mounted Host                                    | DOM nodes and React component state are preserved.                                                   |
+| Connected moves where `Element.moveBefore` is available and succeeds               | The browser can preserve state such as playback, iframe documents and focus.                         |
+| `appendChild` fallback, hiding with `null`, or removing a destination              | DOM identity remains, but browser-managed state may reset. Uninterrupted playback is not guaranteed. |
+| Unmounting Host, changing its React key, or replacing the content's component type | Normal React unmount/remount rules apply; preservation ends.                                         |
 
-## API
+Hiding with `setSlotKey(null)` or `reset()` keeps the React subtree mounted;
+Effects and timers continue. Pause media explicitly when closing it. Outer
+Suspense/Activity boundaries follow React's own visibility and Effect rules.
+Keep Host's `as` tag stable and destinations in the same document.
 
-The reference below describes 0.5.0. See the
-[lifecycle guide](https://kickbelldev.github.io/react-preserve-portal/en/guide/lifecycle-safety.html)
-for connected mounting, hidden boundaries, destination ownership, and disposal.
+React context and synthetic events follow the Host tree; CSS inheritance follows
+the physical destination. Cross-root destinations do not provide event isolation.
+Shadow DOM selection/IME behavior is not guaranteed.
 
-### `createPortal({ id, slots })`
+Host content is **client-only**: Host emits no server HTML and mounts after
+hydration. Keep essential server-visible content outside Host. See the
+[SSR guide](https://kickbelldev.github.io/react-preserve-portal/en/guide/ssr.html).
 
-Returns `{ id, slots, Host, Slot, usePortal, dispose }` bound to that portal. Literal slot
-keys are inferred without `as const`:
+## Version 0.5.0
 
-```tsx
-const Panel = createPortal({ id: 'panel', slots: ['left', 'right'] })
-// <Panel.Slot slotKey="other" /> // TypeScript error
-```
+This README describes the released **0.5.0** API.
 
-Use distinct IDs for independent portals. Factories with the same ID share
-state within the same loaded copy of this library. IDs should be stable,
-application-level identifiers, not values generated on every render. One mounted
-`Host` per portal is the usual arrangement; multiple hosts share the active slot,
-and development builds warn when more than one is mounted.
+- Optional `Host animate` / `PortalAnimation` adds move animation; it is off by default.
+- `Slot ref` exposes the destination element on React 18 and 19.
+- `usePortal()` keeps the same result object until the portal snapshot changes.
+- **Upgrading from 0.4.x:** removing the newest same-key destination now restores
+  the most recent remaining registration. Call `setSlotKey(null)` or `reset()` to
+  hide instead. `unregisterTarget(key)` still clears all registrations for that key.
 
-### `Host`
+**Known issues in 0.5.0:** returned callback-ref cleanup functions are not honored;
+browser-rejected animation options can unmount content; running animations are
+not cancelled when disabled or when Host unmounts. Fixes tracked in
+[PR #24](https://github.com/kickbelldev/react-preserve-portal/pull/24) are **not
+included in 0.5.0** and require a later release. The quick start above does not
+use these affected options.
 
-| Prop        | Meaning                                                                                 |
-| ----------- | --------------------------------------------------------------------------------------- |
-| `children`  | React content to preserve                                                               |
-| `node`      | Compatible alternative to `children`; pass only one content prop                        |
-| `as`        | Container HTML tag, default `'div'`; fixed for the mounted Host                         |
-| `mountWhen` | `'immediate'` (default) or `'connected'`; delay the first content mount until connected |
-| `animate`   | `true` or `{ duration, easing }`; animate moves between slots (default off)             |
+Existing `Host node`, `mountWhen`, hook actions and `dispose()` remain supported.
+Read the migration guide before upgrading from older versions.
 
-Existing `<Panel.Host node={<Editor />} />` calls remain supported. Use
-`mountWhen="connected"` for initial layout measurements or `autoFocus`. After the
-first mount, moving or hiding preserves the same content; connection alone does
-not guarantee visibility or a nonzero size. Outer Suspense/Activity boundaries
-keep the Host container connected, while React controls visibility and Effects.
+## Detailed guides
 
-With `animate`, a `setSlotKey` move animates the container from its old box to
-the new one (FLIP). It changes only `transform` and `opacity` through the Web
-Animations API, measures at move boundaries rather than every frame, continues smoothly when interrupted,
-and respects `prefers-reduced-motion`. Without `animate`, nothing is measured.
+| Topic                                | English                                                                                                                                                                        | 한국어                                                                                                                                                                   |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| API and defaults                     | [API](https://kickbelldev.github.io/react-preserve-portal/en/api.html)                                                                                                         | [API](https://kickbelldev.github.io/react-preserve-portal/api.html)                                                                                                      |
+| Video and routing                    | [Video](https://kickbelldev.github.io/react-preserve-portal/en/guide/video-player.html) · [Routing](https://kickbelldev.github.io/react-preserve-portal/en/guide/routing.html) | [비디오](https://kickbelldev.github.io/react-preserve-portal/guide/video-player.html) · [라우팅](https://kickbelldev.github.io/react-preserve-portal/guide/routing.html) |
+| Lifecycle, ownership and disposal    | [Lifecycle](https://kickbelldev.github.io/react-preserve-portal/en/guide/lifecycle-safety.html)                                                                                | [수명과 소유권](https://kickbelldev.github.io/react-preserve-portal/guide/lifecycle-safety.html)                                                                         |
+| Browser APIs and alternatives        | [Browser APIs](https://kickbelldev.github.io/react-preserve-portal/en/guide/web-platform.html)                                                                                 | [브라우저 API](https://kickbelldev.github.io/react-preserve-portal/guide/web-platform.html)                                                                              |
+| Migration from 0.4.x / 0.3.x / 0.2.x | [Migration](https://kickbelldev.github.io/react-preserve-portal/en/migration.html)                                                                                             | [마이그레이션](https://kickbelldev.github.io/react-preserve-portal/migration.html)                                                                                       |
 
-### `Slot`
-
-| Prop            | Meaning                                                     |
-| --------------- | ----------------------------------------------------------- |
-| `slotKey`       | A key declared in `slots`                                   |
-| `as`            | Destination HTML tag, default `'div'`                       |
-| `ref`           | Receives the destination element (React 18 and 19)          |
-| HTML attributes | `className`, `id`, event handlers, ARIA and data attributes |
-
-```tsx
-<Panel.Slot slotKey="left" as="section" className="editor-pane" />
-```
-
-Slots must be empty: `children` and `dangerouslySetInnerHTML` are rejected by types
-and at runtime. Render placeholders as siblings. Destinations must belong to the
-same document as Host and cannot be the portal container or its descendants.
-
-Prefer one mounted destination per key. If destinations overlap during a
-transition, the last registration wins. Cleaning up an older destination does
-not remove the newer one, and removing the newest destination returns the
-content to the most recent destination that is still registered.
-
-### Development warnings
-
-Outside production builds (`process.env.NODE_ENV !== 'production'`), the library
-warns once for: more than one mounted `Host` per portal ID, slot keys that the
-portal does not declare (from `setSlotKey`, `Slot`, or `registerTarget`), the same
-ID created with different `slots`, and a `Host` whose `as` tag changes after
-mount. Production bundles strip these checks.
-
-### `usePortal()`
-
-| Member                               | Meaning                                                                      |
-| ------------------------------------ | ---------------------------------------------------------------------------- |
-| `slotKey`                            | Active typed key or `null`                                                   |
-| `setSlotKey(key)`                    | Move to a key, or hide with `null`                                           |
-| `returnPath` / `setReturnPath(path)` | Optional routing metadata; the library does not navigate                     |
-| `targets`                            | `ReadonlyMap` snapshot of registered destinations; do not mutate             |
-| `reset()`                            | Hide content and clear `returnPath`, keeping mounted destinations registered |
-| `registerTarget(key, element)`       | Register a manual DOM destination; returns a cleanup function                |
-| `unregisterTarget(key)`              | Remove every registration for that key                                       |
-
-Action references remain stable for a given ID, and the returned object is the
-same until the state changes. Updating one portal does not
-notify subscribers of unrelated portals. Manual registrations should use the
-returned cleanup function so a stale cleanup cannot unregister a replacement:
-
-```tsx
-useEffect(() => {
-  if (!externalElement) return
-  return registerTarget('left', externalElement)
-}, [externalElement, registerTarget])
-```
-
-### `dispose(): boolean`
-
-After all components using an ID have unmounted and all manual targets have been
-unregistered, call `Panel.dispose()` to release its store. It returns `false`
-while any Host, Slot, hook owner (including hidden ones), subscription or target
-remains, and `true` on success or if the ID is already absent. Do not call it
-during render or ownership transitions. Stale actions throw after disposal; a
-fresh mount of the same factory uses a new empty store. Use `reset()` to hide an
-active portal instead.
-
-## Routing
-
-Keep `Host` and both main/mini Slots in a shared layout that survives navigation.
-Hide the inactive destination with CSS instead of unmounting it so both endpoints
-stay connected for `moveBefore`. `returnPath` is optional metadata for your router;
-it never changes the URL. Pause media explicitly before closing it.
-
-The repository's [demo](https://github.com/kickbelldev/react-preserve-portal/tree/main/apps/demo)
-shows route changes, a main player, and a mini player with a return link.
-
-## Server rendering
-
-`Host` emits no server HTML and mounts its content after hydration. `Slot` emits
-its ordinary HTML element. Hooks use an empty server snapshot, avoiding access
-to mutable client state during server rendering. Portal content is therefore
-client-only; render essential server-visible content outside `Host`.
-
-In React Server Component frameworks, define and use the portal behind a
-`'use client'` boundary. Do not create portals inside component render or store
-per-request data in module-level portal state.
-
-## Upgrading from 0.3.x
-
-- Keep Slots empty and move any placeholder content beside them.
-- Treat `targets` as a read-only snapshot and use registration actions to change it.
-- Keep destinations in Host's document and outside its own container.
-- Connected mounting and explicit disposal are optional; existing immediate mounting
-  and the `node` prop remain supported. Read the [migration guide](https://kickbelldev.github.io/react-preserve-portal/en/migration.html).
-
-## Upgrading from 0.2.x
-
-- Existing factory calls, `node`, slot keys, and hook methods continue to work.
-- `Host` additionally accepts JSX children. Do not supply both `children` and `node`.
-- `reset()` now preserves registered destinations. If you used it to remove
-  manually registered targets, call their cleanup functions instead.
-- `registerTarget` now returns cleanup; existing code may continue to ignore it.
-- TypeScript 5+ is required by the published type declarations.
-
-See [CHANGELOG.md](https://github.com/kickbelldev/react-preserve-portal/blob/main/packages/react-preserve-portal/CHANGELOG.md)
-for the release history.
-
-## Development
-
-Use Node 22.12+ or Node 24 and the pnpm version pinned in `package.json`.
-From the repository root:
-
-```bash
-corepack pnpm install --frozen-lockfile
-corepack pnpm build
-corepack pnpm test
-corepack pnpm exec nx run-many --target=typecheck --all
-corepack pnpm lint
-corepack pnpm dev
-```
-
-The dev command builds the library, keeps its watcher running, and starts the
-demo. Lint is read-only. The test command reports actual test counts and fails
-if no tests are found. In restricted containers that cannot create Nx plugin
-sockets, set `NX_DAEMON=false NX_ISOLATE_PLUGINS=false` for the command.
-
-[CONTRIBUTING.md](https://github.com/kickbelldev/react-preserve-portal/blob/main/CONTRIBUTING.md)
-covers architecture, regression checks, and publishing.
+[CHANGELOG](https://github.com/kickbelldev/react-preserve-portal/blob/main/packages/react-preserve-portal/CHANGELOG.md)
+records released changes. [CONTRIBUTING](https://github.com/kickbelldev/react-preserve-portal/blob/main/CONTRIBUTING.md)
+covers local development and verification.
 
 ## License
 
