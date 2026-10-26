@@ -10,26 +10,34 @@ const act = React.act ?? (await import('react-dom/test-utils')).act
 const require = createRequire(import.meta.url)
 const cjs = require('@charley-kim/react-preserve-portal')
 const h = React.createElement
-for (const [format, library] of [
-  ['ESM', esm],
-  ['CJS', cjs],
-]) {
-  const Server = library.createPortal({
-    id: `server-${format}`,
-    slots: ['main'],
-  })
-  assert.equal(
-    renderToString(
-      h(
-        React.Fragment,
-        null,
-        h(Server.Host, null, 'client only'),
-        h(Server.Slot, { slotKey: 'main' }),
+const ssrErrors = []
+const originalError = console.error
+console.error = (...args) => ssrErrors.push(args.map(String).join(' '))
+try {
+  for (const [format, library] of [
+    ['ESM', esm],
+    ['CJS', cjs],
+  ]) {
+    const Server = library.createPortal({
+      id: `server-${format}`,
+      slots: ['main'],
+    })
+    assert.equal(
+      renderToString(
+        h(
+          React.Fragment,
+          null,
+          h(Server.Host, null, 'client only'),
+          h(Server.Slot, { slotKey: 'main' }),
+        ),
       ),
-    ),
-    '<div></div>',
-  )
+      '<div></div>',
+    )
+  }
+} finally {
+  console.error = originalError
 }
+assert.deepEqual(ssrErrors, [], 'SSR must not emit React warnings or errors')
 
 const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost/' })
 globalThis.window = dom.window

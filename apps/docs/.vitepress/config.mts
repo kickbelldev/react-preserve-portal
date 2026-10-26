@@ -61,7 +61,7 @@ function sidebar(en: boolean) {
           link: `${prefix}/guide/lifecycle-safety`,
         },
         {
-          text: en ? 'Migration to 0.4' : '0.4 마이그레이션',
+          text: en ? 'Migration to 0.5' : '0.5 마이그레이션',
           link: `${prefix}/migration`,
         },
       ],

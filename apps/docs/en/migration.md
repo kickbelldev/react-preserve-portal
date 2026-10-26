@@ -1,9 +1,21 @@
 ---
-title: Migrating to 0.4
-description: What to change in your code when upgrading to 0.4 from 0.3.x or 0.2.x.
+title: Migrating to 0.5
+description: Review the 0.5.0 APIs and overlapping-slot recovery behavior, with migration notes for earlier versions.
 ---
 
-# Migrating to 0.4
+# Migrating to 0.5
+
+## From 0.4.x to 0.5.0
+
+Existing factories, `Host node`, `mountWhen`, hook actions and `dispose()` remain supported. Requirements stay at React/React DOM 18 or later and TypeScript 5 or later.
+
+- `Host animate` is optional move animation. It defaults to off; enable it with `true` or `{ duration, easing }`. It respects reduced motion.
+- `Slot ref` exposes the destination DOM element. Use a ref type matching the `as` tag. Both React 18 and 19 are supported.
+- The object returned by `usePortal()` now stays identical until the portal snapshot changes.
+
+**Removing overlapping slots changes behavior.** When several destinations share a key, the newest registration wins. Removing it first now restores the most recent remaining registration. To hide the content instead, explicitly call `setSlotKey(null)` or `reset()`. `unregisterTarget(key)` still clears all registrations for the key.
+
+If `moveBefore` fails during a connected move, the library falls back to `appendChild`. DOM nodes and React state remain, but focus, iframe and media state are not guaranteed. See the [API reference](./api) for the new options and defaults.
 
 ## From 0.3.x to 0.4.0
 
