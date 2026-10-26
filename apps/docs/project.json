@@ -13,6 +13,12 @@
     "build": {
       "executor": "nx:run-commands",
       "dependsOn": ["^build"],
+      "inputs": [
+        "default",
+        "^default",
+        { "env": "DOCS_ANALYTICS_ENABLED" },
+        { "env": "DOCS_ANALYTICS_TOKEN" }
+      ],
       "outputs": ["{workspaceRoot}/dist/apps/docs"],
       "options": {
         "command": "vitepress build .",
@@ -48,10 +54,19 @@
         "parallel": false
       }
     },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node --experimental-strip-types --test apps/docs/.vitepress/analytics.test.mjs"
+      }
+    },
     "lint": {
       "executor": "@nx/eslint:lint",
       "options": {
-        "lintFilePatterns": ["apps/docs/.vitepress/theme/playground.tsx"],
+        "lintFilePatterns": [
+          "apps/docs/.vitepress/theme/playground.tsx",
+          "apps/docs/.vitepress/analytics.ts"
+        ],
         "fix": false
       }
     }

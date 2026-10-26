@@ -39,9 +39,11 @@ jobs:
           python-version: '3.12'
       - run: corepack enable
       - run: corepack pnpm install --frozen-lockfile
-      - run: corepack pnpm exec nx run-many --projects=docs --targets=build,typecheck,lint,check-output --output-style=static
+      - run: corepack pnpm exec nx run-many --projects=docs --targets=build,test,typecheck,lint,check-output --output-style=static
         env:
           NODE_ENV: production
+          DOCS_ANALYTICS_ENABLED: ${{ vars.DOCS_ANALYTICS_ENABLED }}
+          DOCS_ANALYTICS_TOKEN: ${{ vars.DOCS_ANALYTICS_TOKEN }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
