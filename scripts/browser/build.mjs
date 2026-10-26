@@ -20,6 +20,9 @@ await build({
   jsx: 'automatic',
   define: { 'process.env.NODE_ENV': '"production"' },
   alias: {
+    '@charley-kim/react-preserve-portal': process.env.PORTAL_PACKAGE_ENTRY
+      ? resolve(process.env.PORTAL_PACKAGE_ENTRY)
+      : resolve(root, 'packages/react-preserve-portal/src/index.ts'),
     react: resolve(modules, 'react'),
     'react-dom': resolve(modules, 'react-dom'),
   },

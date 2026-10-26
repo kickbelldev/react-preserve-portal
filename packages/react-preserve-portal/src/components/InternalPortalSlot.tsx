@@ -21,8 +21,23 @@ type InternalPortalSlotProps<T extends keyof HTMLElementTagNameMap> = Omit<
 > & { portalId?: string; userRef?: Ref<HTMLElementTagNameMap[T]> }
 
 function assignRef<E>(ref: Ref<E> | undefined, value: E | null) {
-  if (typeof ref === 'function') ref(value)
-  else if (ref) (ref as { current: E | null }).current = value
+  if (typeof ref === 'function') {
+    const cleanup = ref(value)
+    // React 19 cleanup refs are detached by their returned function, without
+    // a second callback invocation with null. Keep legacy callback refs too.
+    return typeof cleanup === 'function'
+      ? cleanup
+      : () => {
+          ref(null)
+        }
+  }
+  if (ref) {
+    const objectRef = ref as { current: E | null }
+    objectRef.current = value
+    return () => {
+      objectRef.current = null
+    }
+  }
 }
 
 export function InternalPortalSlot<
@@ -56,8 +71,10 @@ export function InternalPortalSlot<
   // function does not re-register the destination on every render.
   useRefEffect(() => {
     if (!userRef) return
-    assignRef(userRef, nodeRef.current as HTMLElementTagNameMap[T] | null)
-    return () => assignRef(userRef, null)
+    return assignRef(
+      userRef,
+      nodeRef.current as HTMLElementTagNameMap[T] | null,
+    )
   }, [userRef, container])
 
   if (children !== undefined || dangerouslySetInnerHTML !== undefined) {

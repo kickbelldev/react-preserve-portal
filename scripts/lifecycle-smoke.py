@@ -3,6 +3,7 @@
 Requires the workspace dependencies and a Playwright browser.
 PORTAL_BROWSER selects chromium (default), firefox, or webkit.
 REACT_MODULES can point to a separate node_modules with React 18 or 19.
+PORTAL_PACKAGE_ENTRY can select an extracted npm package's dist/index.js.
 """
 import functools
 import http.server
@@ -31,9 +32,12 @@ with tempfile.TemporaryDirectory(prefix='portal-browser-') as output:
         with sync_playwright() as p:
             browser = launch_browser(p)
             errors = []
+            def record_error(error):
+                errors.append(str(error))
+                print(f'Browser error: {error}')
             for mode in ['suspense', 'activity', 'fallback']:
                 page = browser.new_page()
-                page.on('pageerror', lambda error: errors.append(str(error)))
+                page.on('pageerror', record_error)
                 if mode == 'fallback':
                     page.add_init_script('Element.prototype.moveBefore = undefined')
                 page.goto(f'http://127.0.0.1:{server.server_port}/', wait_until='networkidle')
@@ -86,6 +90,43 @@ with tempfile.TemporaryDirectory(prefix='portal-browser-') as output:
                 assert counts['effects'] == counts['cleanup']
                 print(f'PASS: {browser.browser_type.name} React {page.evaluate("portalFixture.reactVersion")} {mode}; connection, autofocus, DOM/state, iframe lifetime, deletion/disposal')
                 page.close()
+
+            # Exercise native Web Animations exceptions and cancellation, not mocks.
+            page = browser.new_page(reduced_motion='no-preference')
+            page.on('pageerror', record_error)
+            page.add_init_script('''
+              window.portalAnimations = [];
+              const animate = Element.prototype.animate;
+              Element.prototype.animate = function(...args) {
+                const animation = animate.apply(this, args);
+                portalAnimations.push(animation);
+                return animation;
+              };
+            ''')
+            page.goto(f'http://127.0.0.1:{server.server_port}/', wait_until='networkidle')
+            page.evaluate('portalFixture.mountAnimated()')
+            expect(page.locator('#note')).to_be_visible()
+            page.locator('#note').fill('animation state')
+            page.locator('#counter').click()
+            page.evaluate('window.original = document.querySelector("#note")')
+            for options, slot in [({'duration': 60000, 'easing': 'invalid-easing'}, 'mini'),
+                                  ({'duration': -1}, 'main')]:
+                page.evaluate('(options) => portalFixture.setAnimation(options)', options)
+                page.evaluate('(slot) => portalFixture.move(slot)', slot)
+                expect(page.locator(f'#{slot} #note')).to_have_value('animation state')
+                expect(page.locator('#counter')).to_have_text('1')
+                assert page.evaluate('original === document.querySelector("#note")')
+            page.evaluate('portalFixture.setAnimation({duration: 60000}); portalFixture.move("mini")')
+            assert page.evaluate('portalAnimations.at(-1).playState') == 'running'
+            page.evaluate('portalFixture.setAnimation(false)')
+            assert page.evaluate('portalAnimations.at(-1).playState') == 'idle'
+            page.evaluate('portalFixture.setAnimation({duration: 60000}); portalFixture.move("main")')
+            assert page.evaluate('portalAnimations.at(-1).playState') == 'running'
+            page.evaluate('portalFixture.unmount()')
+            assert page.evaluate('portalAnimations.every(animation => animation.playState === "idle")')
+            assert page.evaluate('portalFixture.dispose()') is True
+            print(f'PASS: {browser.browser_type.name} React {page.evaluate("portalFixture.reactVersion")} native animation rejection preserves DOM/state; disable/unmount cancel animations')
+            page.close()
             assert not errors, errors
             browser.close()
     finally:

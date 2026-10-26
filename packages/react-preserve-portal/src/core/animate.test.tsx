@@ -39,20 +39,61 @@ afterEach(() => {
 
 function setup(id: string, animateProp?: boolean | PortalAnimation) {
   const Portal = createPortal({ id, slots: ['a', 'b'] })
-  render(
+  const app = (option?: boolean | PortalAnimation) => (
     <>
-      <Portal.Host animate={animateProp}>
+      <Portal.Host animate={option}>
         <span data-testid="content">content</span>
       </Portal.Host>
       <Portal.Slot slotKey="a" data-rect="0,0,400,200" data-testid="a" />
       <Portal.Slot slotKey="b" data-rect="500,300,200,100" data-testid="b" />
-    </>,
+    </>
   )
+  const view = render(app(animateProp))
   const { result } = renderHook(() => Portal.usePortal())
-  return { Portal, actions: () => result.current }
+  return {
+    Portal,
+    actions: () => result.current,
+    view,
+    setAnimate: (option: boolean | PortalAnimation) =>
+      view.rerender(app(option)),
+  }
 }
 
 describe('Host animate', () => {
+  it('preserves content when the browser rejects an animation', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const { actions } = setup('animate-rejected', {
+      easing: 'unsupported-easing',
+    })
+    act(() => actions().setSlotKey('a'))
+    const content = screen.getByTestId('content')
+    animate.mockImplementationOnce(() => {
+      throw new TypeError('Invalid easing')
+    })
+    expect(() => act(() => actions().setSlotKey('b'))).not.toThrow()
+    expect(screen.getByTestId('b')).toContainElement(content)
+    expect(screen.getByTestId('content')).toBe(content)
+    expect(error).not.toHaveBeenCalled()
+  })
+
+  it('cancels the current animation when animate becomes false', () => {
+    const { actions, setAnimate } = setup('animate-disable', true)
+    act(() => actions().setSlotKey('a'))
+    const content = screen.getByTestId('content')
+    setAnimate(false)
+    expect(animations[0].cancel).toHaveBeenCalledTimes(1)
+    act(() => actions().setSlotKey('b'))
+    expect(animate).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('b')).toContainElement(content)
+  })
+
+  it('cancels animation resources when Host unmounts', () => {
+    const { actions, view } = setup('animate-unmount', { duration: 60_000 })
+    act(() => actions().setSlotKey('a'))
+    view.unmount()
+    expect(animations[0].cancel).toHaveBeenCalledTimes(1)
+  })
+
   it('fades in from hidden, then moves from the old box with transform only', () => {
     const { actions } = setup('animate-move', true)
     act(() => actions().setSlotKey('a'))
