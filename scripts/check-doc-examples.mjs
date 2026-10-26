@@ -14,6 +14,8 @@ import { fileURLToPath } from 'node:url'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const docs = join(root, 'apps/docs')
+// The root README links to this same file; check it once for GitHub and npm.
+const readme = join(root, 'packages/react-preserve-portal/README.md')
 const require = createRequire(import.meta.url)
 const cache = join(docs, '.vitepress/cache')
 mkdirSync(cache, { recursive: true })
@@ -32,9 +34,10 @@ function* pages(folder) {
 // Unlabelled API fragments intentionally depend on the surrounding explanation.
 try {
   let count = 0
-  for (const page of pages(docs)) {
+  let readmeCount = 0
+  for (const page of [readme, ...pages(docs)]) {
     const source = readFileSync(page, 'utf8')
-    const destination = join(directory, relative(docs, page))
+    const destination = join(directory, relative(root, page))
     const files = new Set()
     for (const [, name, code] of source.matchAll(
       /^```tsx \[([\w.-]+\.tsx)\]\r?\n([\s\S]*?)^```/gm,
@@ -44,9 +47,11 @@ try {
       mkdirSync(destination, { recursive: true })
       writeFileSync(join(destination, name), code)
       count++
+      if (page === readme) readmeCount++
     }
   }
   assert(count > 0, 'No complete documentation examples found')
+  assert(readmeCount > 0, 'No complete README example found')
   writeFileSync(
     join(directory, 'tsconfig.json'),
     JSON.stringify({
@@ -77,7 +82,7 @@ try {
     },
   )
   console.log(
-    `PASS: ${count} copyable documentation modules type-check against the public package`,
+    `PASS: ${readmeCount} README and ${count - readmeCount} documentation modules type-check against the public package`,
   )
 } finally {
   rmSync(directory, { recursive: true, force: true })
