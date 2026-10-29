@@ -1,3 +1,4 @@
+import { Activity, StrictMode, Suspense } from 'react'
 import { act, render, renderHook, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -39,20 +40,122 @@ afterEach(() => {
 
 function setup(id: string, animateProp?: boolean | PortalAnimation) {
   const Portal = createPortal({ id, slots: ['a', 'b'] })
-  render(
+  const app = (option?: boolean | PortalAnimation) => (
     <>
-      <Portal.Host animate={animateProp}>
+      <Portal.Host animate={option}>
         <span data-testid="content">content</span>
       </Portal.Host>
       <Portal.Slot slotKey="a" data-rect="0,0,400,200" data-testid="a" />
       <Portal.Slot slotKey="b" data-rect="500,300,200,100" data-testid="b" />
-    </>,
+    </>
   )
+  const view = render(app(animateProp))
   const { result } = renderHook(() => Portal.usePortal())
-  return { Portal, actions: () => result.current }
+  return {
+    Portal,
+    actions: () => result.current,
+    view,
+    setAnimate: (option: boolean | PortalAnimation) =>
+      view.rerender(app(option)),
+  }
 }
 
 describe('Host animate', () => {
+  it('recovers from an enter-animation failure and animates the next move', () => {
+    const { actions } = setup('animate-enter-rejected', true)
+    animate.mockImplementationOnce(() => {
+      throw new TypeError('Invalid duration')
+    })
+    expect(() => act(() => actions().setSlotKey('a'))).not.toThrow()
+    const content = screen.getByTestId('content')
+    expect(screen.getByTestId('a')).toContainElement(content)
+    act(() => actions().setSlotKey('b'))
+    expect(animate).toHaveBeenCalledTimes(2)
+    expect(screen.getByTestId('b')).toContainElement(content)
+    act(() => actions().setSlotKey(null))
+    expect(animations[0].cancel).toHaveBeenCalledTimes(1)
+  })
+
+  it('preserves content when the browser rejects an animation', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const { actions } = setup('animate-rejected', {
+      easing: 'unsupported-easing',
+    })
+    act(() => actions().setSlotKey('a'))
+    const content = screen.getByTestId('content')
+    animate.mockImplementationOnce(() => {
+      throw new TypeError('Invalid easing')
+    })
+    expect(() => act(() => actions().setSlotKey('b'))).not.toThrow()
+    expect(screen.getByTestId('b')).toContainElement(content)
+    expect(screen.getByTestId('content')).toBe(content)
+    expect(error).not.toHaveBeenCalled()
+    act(() => actions().setSlotKey('a'))
+    expect(animate).toHaveBeenCalledTimes(3)
+    expect(screen.getByTestId('a')).toContainElement(content)
+  })
+
+  it.each(['activity', 'suspense'] as const)(
+    'cancels animations when a hidden %s Host is deleted in StrictMode',
+    (boundary) => {
+      const Portal = createPortal({
+        id: `animate-hidden-delete-${boundary}`,
+        slots: ['main'],
+      })
+      const pending = new Promise<void>(() => {})
+      function Blocker({ hidden }: { hidden: boolean }) {
+        if (hidden) throw pending
+        return null
+      }
+      const app = (hidden: boolean, present = true) => {
+        const host = <Portal.Host animate>content</Portal.Host>
+        return (
+          <StrictMode>
+            <Portal.Slot slotKey="main" data-rect="0,0,400,200" />
+            {present &&
+              (boundary === 'activity' ? (
+                <Activity mode={hidden ? 'hidden' : 'visible'}>{host}</Activity>
+              ) : (
+                <Suspense fallback="loading">
+                  <Blocker hidden={hidden} />
+                  {host}
+                </Suspense>
+              ))}
+          </StrictMode>
+        )
+      }
+      const view = render(app(false))
+      const controls = renderHook(() => Portal.usePortal())
+      act(() => controls.result.current.setSlotKey('main'))
+      expect(animations).toHaveLength(1)
+      view.rerender(app(true))
+      expect(animations[0].cancel).not.toHaveBeenCalled()
+      view.rerender(app(true, false))
+      expect(animations[0].cancel).toHaveBeenCalledTimes(1)
+      view.unmount()
+      controls.unmount()
+      expect(Portal.dispose()).toBe(true)
+    },
+  )
+
+  it('cancels the current animation when animate becomes false', () => {
+    const { actions, setAnimate } = setup('animate-disable', true)
+    act(() => actions().setSlotKey('a'))
+    const content = screen.getByTestId('content')
+    setAnimate(false)
+    expect(animations[0].cancel).toHaveBeenCalledTimes(1)
+    act(() => actions().setSlotKey('b'))
+    expect(animate).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('b')).toContainElement(content)
+  })
+
+  it('cancels animation resources when Host unmounts', () => {
+    const { actions, view } = setup('animate-unmount', { duration: 60_000 })
+    act(() => actions().setSlotKey('a'))
+    view.unmount()
+    expect(animations[0].cancel).toHaveBeenCalledTimes(1)
+  })
+
   it('fades in from hidden, then moves from the old box with transform only', () => {
     const { actions } = setup('animate-move', true)
     act(() => actions().setSlotKey('a'))

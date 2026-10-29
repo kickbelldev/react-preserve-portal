@@ -8,9 +8,7 @@ const output = resolve(process.argv[2])
 const modules =
   process.env.REACT_MODULES ||
   resolve(root, 'packages/react-preserve-portal/node_modules')
-const { build } = createRequire(
-  resolve(root, 'node_modules/vite/package.json'),
-)('esbuild')
+const { build } = createRequire(import.meta.resolve('vite'))('esbuild')
 mkdirSync(output, { recursive: true })
 await build({
   entryPoints: [resolve(root, 'scripts/browser/lifecycle.jsx')],
@@ -20,6 +18,9 @@ await build({
   jsx: 'automatic',
   define: { 'process.env.NODE_ENV': '"production"' },
   alias: {
+    '@charley-kim/react-preserve-portal': process.env.PORTAL_PACKAGE_ENTRY
+      ? resolve(process.env.PORTAL_PACKAGE_ENTRY)
+      : resolve(root, 'packages/react-preserve-portal/src/index.ts'),
     react: resolve(modules, 'react'),
     'react-dom': resolve(modules, 'react-dom'),
   },

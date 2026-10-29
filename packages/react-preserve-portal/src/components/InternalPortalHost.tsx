@@ -76,8 +76,13 @@ function ClientPortalHost<T extends keyof HTMLElementTagNameMap = 'div'>({
     }
     const start = moveStart.current
     moveStart.current = null
+    if (animate === false) {
+      running.current?.cancel()
+      running.current = null
+    }
     if (!target) {
       running.current?.cancel()
+      running.current = null
       unmanagedNode.remove()
     } else if (unmanagedNode.parentNode !== target) {
       // moveBefore preserves browser-managed state for connected DOM moves.
@@ -134,7 +139,14 @@ function ClientPortalHost<T extends keyof HTMLElementTagNameMap = 'div'>({
 
   // Layout-effect cleanup also runs when Suspense/Activity hides a Host.
   // Track final deletion across React 18 Suspense and React 19 Activity.
-  useCommittedEffect(() => () => unmanagedNode.remove(), [unmanagedNode])
+  useCommittedEffect(
+    () => () => {
+      running.current?.cancel()
+      running.current = null
+      unmanagedNode.remove()
+    },
+    [unmanagedNode],
+  )
 
   return hasMounted
     ? createPortal(children !== undefined ? children : node, unmanagedNode)

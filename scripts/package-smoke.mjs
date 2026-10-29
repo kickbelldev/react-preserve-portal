@@ -61,6 +61,21 @@ for (const [format, library] of [
   })
   let actions
   let connectedOnMount = false
+  const supportsRefCleanup = Number(React.version.split('.')[0]) >= 19
+  let activeRefs = 0
+  let nullRefs = 0
+  const mainRef = (element) => {
+    if (!element) {
+      nullRefs++
+      if (!supportsRefCleanup) activeRefs--
+      return
+    }
+    activeRefs++
+    if (supportsRefCleanup)
+      return () => {
+        activeRefs--
+      }
+  }
   function Counter() {
     const [count, setCount] = useState(0)
     useLayoutEffect(() => {
@@ -74,7 +89,7 @@ for (const [format, library] of [
       React.Fragment,
       null,
       h(Portal.Host, { mountWhen: 'connected' }, h(Counter)),
-      h(Portal.Slot, { slotKey: 'main', id: 'main' }),
+      h(Portal.Slot, { slotKey: 'main', id: 'main', ref: mainRef }),
       h(Portal.Slot, { slotKey: 'mini', id: 'mini', ref: miniRef }),
     )
   }
@@ -84,6 +99,9 @@ for (const [format, library] of [
   await act(() => root.render(h(React.StrictMode, null, h(App))))
   assert.equal(Portal.dispose(), false)
   assert.equal(miniRef.current, document.getElementById('mini'))
+  assert.equal(activeRefs, 1, 'StrictMode must balance callback-ref resources')
+  if (supportsRefCleanup)
+    assert.equal(nullRefs, 0, 'Cleanup refs must not receive null')
   assert.equal(document.querySelector('button'), null)
   await act(() => actions.setSlotKey('main'))
   const button = document.querySelector('button')
@@ -103,10 +121,17 @@ for (const [format, library] of [
   await act(() => root.unmount())
   assert.equal(button.isConnected, false)
   assert.equal(miniRef.current, null)
+  assert.equal(
+    activeRefs,
+    0,
+    'Slot must release callback-ref resources on unmount',
+  )
+  if (supportsRefCleanup)
+    assert.equal(nullRefs, 0, 'Cleanup refs must not receive null')
   assert.equal(Portal.dispose(), true)
   assert.throws(() => actions.setSlotKey('main'), /disposed/)
   console.log(
-    `PASS: ${format} SSR, StrictMode, connected mount, Slot ref, DOM identity, React state, reset, unmount and disposal`,
+    `PASS: ${format} SSR, StrictMode, connected mount, Slot ref/cleanup, DOM identity, React state, reset, unmount and disposal`,
   )
 }
 dom.window.close()

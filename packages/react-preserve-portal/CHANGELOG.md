@@ -1,3 +1,9 @@
+## 0.5.1 (2026-10-29)
+
+- Honor returned Slot ref cleanup functions, including ref replacement, StrictMode and Activity hiding; legacy callback and object refs retain their behavior.
+- Preserve the portal content when the browser rejects optional animation timing or easing. Development builds warn and the move completes without animation.
+- Cancel running animations when `animate` becomes `false` or Host unmounts.
+
 ## 0.5.0 (2026-10-26)
 
 - Add `Host animate` and the `PortalAnimation` type: animate slot moves with transform/opacity through the Web Animations API, measure at move boundaries rather than every frame, and continue from the current position when interrupted. The default is 450 ms with a slight-overshoot `cubic-bezier(.2,.9,.3,1.08)` easing. Reduced motion is respected; animation is off by default with no measurement cost.

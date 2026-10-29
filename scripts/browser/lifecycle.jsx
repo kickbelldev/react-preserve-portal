@@ -7,7 +7,7 @@ import React, {
 } from 'react'
 import { createRoot } from 'react-dom/client'
 import { flushSync } from 'react-dom'
-import { createPortal } from '../../packages/react-preserve-portal/src/index.ts'
+import { createPortal } from '@charley-kim/react-preserve-portal'
 
 const Panel = createPortal({
   id: 'browser-regression',
@@ -15,7 +15,7 @@ const Panel = createPortal({
 })
 const state = { measurements: [], effects: 0, cleanup: 0, moves: [] }
 const Activity = React.Activity
-let controls, setHidden, setPresent
+let controls, setHidden, setPresent, setAnimation
 let blocked = false
 const pending = new Promise(() => {})
 const root = createRoot(document.getElementById('root'))
@@ -55,8 +55,12 @@ function Blocker() {
   if (blocked) throw pending
   return null
 }
-function App({ mode }) {
+function App({ mode, animated = false }) {
   controls = Panel.usePortal()
+  const [animation, changeAnimation] = useState(
+    animated ? { duration: 60_000 } : false,
+  )
+  setAnimation = changeAnimation
   const [hidden, hide] = useState(false)
   const [present, show] = useState(true)
   setHidden = (value) => {
@@ -68,14 +72,18 @@ function App({ mode }) {
     controls.setSlotKey('main')
   }, [])
   const host = (
-    <Panel.Host mountWhen="connected">
+    <Panel.Host mountWhen="connected" animate={animation}>
       <Content />
     </Panel.Host>
   )
   return (
     <>
-      <Panel.Slot slotKey="main" id="main" />
-      <Panel.Slot slotKey="mini" id="mini" />
+      <Panel.Slot slotKey="main" id="main" style={{ width: 400 }} />
+      <Panel.Slot
+        slotKey="mini"
+        id="mini"
+        style={{ width: 200, marginLeft: 450 }}
+      />
       {present &&
         (mode === 'activity' ? (
           <Activity mode={hidden ? 'hidden' : 'visible'}>{host}</Activity>
@@ -102,6 +110,9 @@ window.portalFixture = {
   nativeMove: !!nativeMove,
   mount: (mode = 'suspense') =>
     flushSync(() => root.render(<App mode={mode} />)),
+  mountAnimated: (mode = 'suspense') =>
+    flushSync(() => root.render(<App mode={mode} animated />)),
+  setAnimation: (value) => flushSync(() => setAnimation(value)),
   move: (key) => flushSync(() => controls.setSlotKey(key)),
   hide: (value) => flushSync(() => setHidden(value)),
   remove: () => flushSync(() => setPresent(false)),
