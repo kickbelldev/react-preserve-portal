@@ -127,6 +127,28 @@ with tempfile.TemporaryDirectory(prefix='portal-browser-') as output:
             assert page.evaluate('portalFixture.dispose()') is True
             print(f'PASS: {browser.browser_type.name} React {page.evaluate("portalFixture.reactVersion")} native animation rejection preserves DOM/state; disable/unmount cancel animations')
             page.close()
+            for mode in ['suspense', 'activity']:
+                page = browser.new_page(reduced_motion='no-preference')
+                page.on('pageerror', record_error)
+                page.goto(f'http://127.0.0.1:{server.server_port}/', wait_until='networkidle')
+                if mode == 'activity' and not page.evaluate('portalFixture.supportsActivity'):
+                    page.close()
+                    continue
+                page.evaluate('(mode) => portalFixture.mountAnimated(mode)', mode)
+                page.evaluate('''() => {
+                  window.original = document.querySelector('#note');
+                  window.animation = original.parentElement.parentElement.getAnimations()[0];
+                }''')
+                assert page.evaluate('animation.playState') == 'running'
+                page.evaluate('portalFixture.hide(true)')
+                assert page.evaluate('original.isConnected')
+                page.evaluate('portalFixture.remove()')
+                assert page.evaluate('animation.playState') == 'idle'
+                assert page.evaluate('!original.isConnected')
+                page.evaluate('portalFixture.unmount()')
+                assert page.evaluate('portalFixture.dispose()') is True
+                print(f'PASS: {browser.browser_type.name} React {page.evaluate("portalFixture.reactVersion")} hidden {mode} deletion cancels animation and releases content')
+                page.close()
             assert not errors, errors
             browser.close()
     finally:

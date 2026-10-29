@@ -110,8 +110,8 @@ window.portalFixture = {
   nativeMove: !!nativeMove,
   mount: (mode = 'suspense') =>
     flushSync(() => root.render(<App mode={mode} />)),
-  mountAnimated: () =>
-    flushSync(() => root.render(<App mode="suspense" animated />)),
+  mountAnimated: (mode = 'suspense') =>
+    flushSync(() => root.render(<App mode={mode} animated />)),
   setAnimation: (value) => flushSync(() => setAnimation(value)),
   move: (key) => flushSync(() => controls.setSlotKey(key)),
   hide: (value) => flushSync(() => setHidden(value)),

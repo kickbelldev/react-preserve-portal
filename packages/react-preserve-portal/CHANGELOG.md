@@ -1,4 +1,4 @@
-## Unreleased
+## 0.5.1 (2026-10-29)
 
 - Honor returned Slot ref cleanup functions, including ref replacement, StrictMode and Activity hiding; legacy callback and object refs retain their behavior.
 - Preserve the portal content when the browser rejects optional animation timing or easing. Development builds warn and the move completes without animation.

@@ -1,3 +1,4 @@
+import { Activity, StrictMode, Suspense } from 'react'
 import { act, render, renderHook, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -60,6 +61,21 @@ function setup(id: string, animateProp?: boolean | PortalAnimation) {
 }
 
 describe('Host animate', () => {
+  it('recovers from an enter-animation failure and animates the next move', () => {
+    const { actions } = setup('animate-enter-rejected', true)
+    animate.mockImplementationOnce(() => {
+      throw new TypeError('Invalid duration')
+    })
+    expect(() => act(() => actions().setSlotKey('a'))).not.toThrow()
+    const content = screen.getByTestId('content')
+    expect(screen.getByTestId('a')).toContainElement(content)
+    act(() => actions().setSlotKey('b'))
+    expect(animate).toHaveBeenCalledTimes(2)
+    expect(screen.getByTestId('b')).toContainElement(content)
+    act(() => actions().setSlotKey(null))
+    expect(animations[0].cancel).toHaveBeenCalledTimes(1)
+  })
+
   it('preserves content when the browser rejects an animation', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     const { actions } = setup('animate-rejected', {
@@ -74,7 +90,53 @@ describe('Host animate', () => {
     expect(screen.getByTestId('b')).toContainElement(content)
     expect(screen.getByTestId('content')).toBe(content)
     expect(error).not.toHaveBeenCalled()
+    act(() => actions().setSlotKey('a'))
+    expect(animate).toHaveBeenCalledTimes(3)
+    expect(screen.getByTestId('a')).toContainElement(content)
   })
+
+  it.each(['activity', 'suspense'] as const)(
+    'cancels animations when a hidden %s Host is deleted in StrictMode',
+    (boundary) => {
+      const Portal = createPortal({
+        id: `animate-hidden-delete-${boundary}`,
+        slots: ['main'],
+      })
+      const pending = new Promise<void>(() => {})
+      function Blocker({ hidden }: { hidden: boolean }) {
+        if (hidden) throw pending
+        return null
+      }
+      const app = (hidden: boolean, present = true) => {
+        const host = <Portal.Host animate>content</Portal.Host>
+        return (
+          <StrictMode>
+            <Portal.Slot slotKey="main" data-rect="0,0,400,200" />
+            {present &&
+              (boundary === 'activity' ? (
+                <Activity mode={hidden ? 'hidden' : 'visible'}>{host}</Activity>
+              ) : (
+                <Suspense fallback="loading">
+                  <Blocker hidden={hidden} />
+                  {host}
+                </Suspense>
+              ))}
+          </StrictMode>
+        )
+      }
+      const view = render(app(false))
+      const controls = renderHook(() => Portal.usePortal())
+      act(() => controls.result.current.setSlotKey('main'))
+      expect(animations).toHaveLength(1)
+      view.rerender(app(true))
+      expect(animations[0].cancel).not.toHaveBeenCalled()
+      view.rerender(app(true, false))
+      expect(animations[0].cancel).toHaveBeenCalledTimes(1)
+      view.unmount()
+      controls.unmount()
+      expect(Portal.dispose()).toBe(true)
+    },
+  )
 
   it('cancels the current animation when animate becomes false', () => {
     const { actions, setAnimate } = setup('animate-disable', true)
