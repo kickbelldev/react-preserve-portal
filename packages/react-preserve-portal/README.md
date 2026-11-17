@@ -113,9 +113,9 @@ Host content is **client-only**: Host emits no server HTML and mounts after
 hydration. Keep essential server-visible content outside Host. See the
 [SSR guide](https://kickbelldev.github.io/react-preserve-portal/en/guide/ssr.html).
 
-## Version 0.5.0
+## Version 0.5.1
 
-This README describes the released **0.5.0** API.
+This README describes the released **0.5.1** API.
 
 - Optional `Host animate` / `PortalAnimation` adds move animation; it is off by default.
 - `Slot ref` exposes the destination element on React 18 and 19.
@@ -124,12 +124,10 @@ This README describes the released **0.5.0** API.
   the most recent remaining registration. Call `setSlotKey(null)` or `reset()` to
   hide instead. `unregisterTarget(key)` still clears all registrations for that key.
 
-**Known issues in 0.5.0:** returned callback-ref cleanup functions are not honored;
-browser-rejected animation options can unmount content; running animations are
-not cancelled when disabled or when Host unmounts. Fixes tracked in
-[PR #24](https://github.com/kickbelldev/react-preserve-portal/pull/24) are **not
-included in 0.5.0** and require a later release. The quick start above does not
-use these affected options.
+  0.5.1 is a patch for 0.5.0 with no API changes: returned callback-ref cleanup
+  functions are honored, content stays mounted when the browser rejects animation
+  options, and running animations are cancelled when `animate` turns off or Host
+  unmounts. Upgrade from 0.5.0 without code changes.
 
 Existing `Host node`, `mountWhen`, hook actions and `dispose()` remain supported.
 Read the migration guide before upgrading from older versions.
